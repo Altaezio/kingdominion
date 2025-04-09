@@ -1,0 +1,6 @@
+{
+    ADD TO GITIGNORE BEFORE PUSHING
+	"token": "yourToken",
+	"clientId": "yourClientId",
+	"guildId": "yourGuildId"
+}
