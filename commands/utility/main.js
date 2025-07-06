@@ -7,17 +7,18 @@ module.exports = {
         .setName('run')
         .setDescription('Starts the game'),
     async execute(interaction) {
-        const alreadyRunning = false;
+        const alreadyRunning = schedule.scheduledJobs.includes('running-game');
         if (alreadyRunning) {
             await interaction.reply({ content: 'Game already running', flags: MessageFlags.Ephemeral });
             return;
         }
 
-        const job = schedule.scheduleJob('0 * * * *', async function () { // add a name so it can be searched if already running to avoid re-running the command
+        const job = schedule.scheduleJob('running-game', '0 * * * *', async function () {
             const barrack = require('../../source/barracks.js');
             const arena = require('../../source/arena.js');
 
-            const nFighters = barrack.GetFighters().length;
+            const fighters = barrack.GetFighters();
+            const nFighters = fighters.length;
             if (nFighters < 2) {
                 await interaction.reply({ content: `Not enough fighters (${nFighters})`, flags: MessageFlags.Ephemeral });
                 return;
@@ -27,6 +28,10 @@ module.exports = {
 
             if (arena.GetState() == "initialisation") {
                 // give fighters positions
+                const spawnPoints = arena.GetSpawnPositions(nFighters);
+                for (let i = 0; i < nFighters; i++) {
+                    arena.AddObjectsToPosition(fighters[i].id, spawnPoints[i]);
+                }
                 arena.SetState("battling");
             }
 
@@ -35,7 +40,9 @@ module.exports = {
 
                 // give the wanted infos to the fighters and get the commands
 
-                // select one command per fighter and apply them
+                // select one command per fighter 
+
+                // apply the selected commands
             }
         });
     },
