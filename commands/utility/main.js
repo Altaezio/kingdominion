@@ -36,9 +36,9 @@ module.exports = {
             }
 
             if (arena.GetState() == "battling") {
-                // go through fighters to get their wanted info (??)
+                // go through fighters to get their wanted info (??) => GatherInfo
 
-                // give the wanted infos to the fighters and get the commands
+                // give the wanted infos to the fighters and get the commands => 
 
                 // select one command per fighter 
 

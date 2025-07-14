@@ -5,7 +5,8 @@ module.exports = {
             "id": fighters.nextId,
             "name": name,
             "userLocalId": userLocalId,
-            "modules": []
+            "modifierIds": [],
+            "modifierData": {}
         };
         fighters.allFighters[newFighter.id] = newFighter;
         fighters.nextId++;
