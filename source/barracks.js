@@ -1,4 +1,6 @@
 module.exports = {
+    loadedFighters: {},
+
     CreateFighter(name, userLocalId) {
         const fighters = require('../data/fighters.json');
         const newFighter = {
@@ -15,26 +17,46 @@ module.exports = {
         fs.writeFileSync('../data/fighters.json', data);
         {
             const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + ']: New fighter created, name: ${name}, userLocalId: ${userLocalId}');
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: New fighter created, name: ${name}, userLocalId: ${userLocalId}`);
         }
         return newFighter;
     },
 
-    GetFighters() {
+    LoadAllFighters() {
         const fighters = require('../data/fighters.json');
-        return fighters.allFighters;
+        this.loadedFighters = fighters.allFighters;
+        {
+            const currentTime = new Date();
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: ${length(Object.keys(this.LoadAllFighters))} fighters loaded`);
+        }
+    },
+
+    SaveFighters() {
+        const fighters = require('../data/fighters.json');
+        for (let fighter in this.loadedFighters) {
+            fighters[fighter.id] = fighter;
+        }
+
+        const data = JSON.stringify(fighters, null, 4);
+        fs.writeFileSync('../data/fighters.json', data);
+        {
+            const currentTime = new Date();
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Fighters saved`);
+        }
+    },
+
+    GetFighters() {
+        return this.loadedFighters;
     },
 
     GetFighterById(id) {
-        const fighters = require('../data/fighters.json');
-        console.assert(fighters.hasOwnProperty(id), 'Fighter with id ${id} not present in saved data');
-        return fighters.allfighters[id];
+        console.assert(this.loadedFighters.hasOwnProperty(id), `Fighter with id ${id} not loaded`);
+        return this.loadedFighters[id];
     },
 
     GetFighterByName(name) {
-        const fighters = require('../data/fighters.json');
-        const fighter = fighters.allFighters.find(e => e.name === name);
-        console.assert(fighter !== undefined, 'Fighter ${name} not present in saved data');
+        const fighter = this.loadedFighters.find(e => e.name === name);
+        console.assert(fighter !== undefined, `Fighter ${name} not loaded`);
         return fighter;
     }
 }

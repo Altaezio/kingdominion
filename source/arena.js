@@ -1,33 +1,45 @@
 module.exports = {
-    GetState() {
+    loadedMap: {},
+
+    LoadMap() {
         const map = require('../data/currentMap.json');
-        return map.state;
+        this.loadedMap = map;
+        {
+            const currentTime = new Date();
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Map loaded`);
+        }
     },
 
-    SetState(newState) {
-
-        const map = require('../data/currentMap.json');
-        const oldState = map.state;
-        map.state = newState;
-
-        const data = JSON.stringify(map, null, 4);
+    SaveMap() {
+        const data = JSON.stringify(this.loadedMap, null, 4);
         fs.writeFileSync('../data/currentMap.json', data);
         {
             const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: map state from ${oldState} to ${map.state}`);
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Map saved`);
+        }
+    },
+
+    GetState() {
+        return this.loadedMap.state;
+    },
+
+    SetState(newState) {
+        const oldState = this.loadedMap.state;
+        this.loadedMap.state = newState;
+        {
+            const currentTime = new Date();
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: map state from ${oldState} to ${this.loadedMap.state}`);
         }
     },
 
     GetSpawnPositions(nToSpawn) {
-        const map = require('../data/currentMap.json');
         // TODO
     },
 
     GetObjectsAtPosition(position) {
-        const map = require('../data/currentMap.json');
         const positionStr = `${position.x};${position.y}`;
-        if (positionStr in map.map) {
-            return map.map[positionStr];
+        if (positionStr in this.loadedMap.map) {
+            return this.loadedMap.map[positionStr];
         }
         else {
             return [];
@@ -39,7 +51,6 @@ module.exports = {
     },
 
     MoveObject(objectId, newPosition) {
-        const map = require('../data/currentMap.json');
         const oldPosition = this.GetObjectPosition(objectId);
         console.assert(oldPosition != undefined, `Object ${objectId} not found`);
         if (oldPosition === undefined)
@@ -48,30 +59,15 @@ module.exports = {
         const oldPositionStr = `${oldPosition.x};${oldPosition.y}`;
         const newPositionStr = `${newPosition.x};${newPosition.y}`;
 
-        const oldInd = map.map[oldPositionStr].indexOf(objectId);
-        map.map[oldPositionStr].splice(oldInd, 1);
-        map.map[newPositionStr] = map.map[newPositionStr].concat(objectId);
-
-        const data = JSON.stringify(map, null, 4);
-        fs.writeFileSync('../data/currentMap.json', data);
-        {
-            const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: object '${objectId}' moved from (${oldPositionStr}) to (${newPositionStr})`);
-        }
+        const oldInd = this.loadedMap.map[oldPositionStr].indexOf(objectId);
+        this.loadedMap.map[oldPositionStr].splice(oldInd, 1);
+        this.loadedMap.map[newPositionStr] = this.loadedMap.map[newPositionStr].concat(objectId);
     },
 
     // 'objectIds' can be one id or an array of ids
     AddObjectsToPosition(objectIds, position) {
-        const map = require('../data/currentMap.json');
         const positionStr = `${position.x};${position.y}`;
-        map.map[positionStr] = map.map[positionStr].concat(objectIds);
-
-        const data = JSON.stringify(map, null, 4);
-        fs.writeFileSync('../data/currentMap.json', data);
-        {
-            const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: objects added to the map at position (${positionStr})`);
-        }
+        this.loadedMap.map[positionStr] = this.loadedMap.map[positionStr].concat(objectIds);
     },
 
     AddObjectsToPosition(objectIds, x, y) {
@@ -79,9 +75,8 @@ module.exports = {
     },
 
     GetObjectPosition(objectId) {
-        const map = require('../data/currentMap.json');
-        for (let key in map.map) {
-            if (map.map[key].includes(objectId)) {
+        for (let key in this.loadedMap.map) {
+            if (this.loadedMap.map[key].includes(objectId)) {
                 return key;
             }
         }
