@@ -5,10 +5,12 @@ module.exports = {
         const fighters = require('../data/fighters.json');
         const newFighter = {
             "id": fighters.nextId,
+            "type": "fighter",
             "name": name,
             "userLocalId": userLocalId,
-            "modifierIds": [],
-            "modifierData": {}
+            "modifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
+            "modifierData": {},
+            "currentTeamId": 0
         };
         fighters.allFighters[newFighter.id] = newFighter;
         fighters.nextId++;

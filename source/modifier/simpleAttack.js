@@ -27,13 +27,21 @@ module.exports = {
 
     },
 
-    GetAction(barrack, fighterId, map, info) {
+    GetCommand(barrack, fighterId, map, info) {
         if (info.hasOwnProperty('closestEnemies') &&
             info.closestEnemies[0].distance <= REACH) {
             // ATAK
-            let action = { modifierId: this.id, type: "command", weight: 100, target: info.closestEnemy.id, damage: DAMAGE };
             const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
-            action.isMissed = attackIsMissed;
+            const resultingEvent = {
+                modifierId: this.id,
+                type: 'receiveDamage',
+                target: info.closestEnemies[0].id,
+                author: fighterId,
+                amount: DAMAGE,
+                dist: REACH,
+                isMissed: attackIsMissed
+            };
+            const action = { modifierId: this.id, type: "command", weight: 100, resultingEvent: resultingEvent };
             return action;
         }
         else {

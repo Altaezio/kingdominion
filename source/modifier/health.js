@@ -9,6 +9,10 @@ module.exports = {
         currentHealth: 10
     },
 
+
+    GatherWantedInfo(info) {
+    },
+
     GatherInfo(barrack, fighterId, map, info) {
         let fighter = barrack.GetFighterById(fighterId);
         if (info.hasOwnProperty('currentHealth')) {
@@ -24,7 +28,7 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, map, event) {
-        if (event.type == 'receiveDamage' && event.timing == 'actual') {
+        if (event.type == 'receiveDamage' && event.timing == 'during') {
             console.assert(event.hasOwnProperty('amount'));
             if (event.amount > 0) {
                 let fighter = barrack.GetFighterById(fighterId);
@@ -35,8 +39,11 @@ module.exports = {
 
                 if (fighter.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {
+                        modifierId: this.id,
                         type: 'lose',
-                        reason: 'notEnoughHealth'
+                        target: fighterId,
+                        author: fighterId,
+                        reason: 'notEnoughHealth',
                     };
                     event.consequence.push(lostEvent);
                 }
