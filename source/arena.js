@@ -50,7 +50,7 @@ module.exports = {
         return this.GetObjectsAtPosition({ 'x': x, 'y': y });
     },
 
-    MoveObject(objectId, newPosition) {
+    MoveObject(objectId, newPosition) { // TODO find where to check if can move !!!
         const oldPosition = this.GetObjectPosition(objectId);
         console.assert(oldPosition != undefined, `Object ${objectId} not found`);
         if (oldPosition === undefined)
@@ -62,6 +62,10 @@ module.exports = {
         const oldInd = this.loadedMap.map[oldPositionStr].indexOf(objectId);
         this.loadedMap.map[oldPositionStr].splice(oldInd, 1);
         this.loadedMap.map[newPositionStr] = this.loadedMap.map[newPositionStr].concat(objectId);
+    },
+
+    MoveObject(objectId, x, y) {
+        this.MoveObject(objectId, ({ 'x': x, 'y': y }))
     },
 
     // 'objectIds' can be one id or an array of ids
@@ -77,7 +81,7 @@ module.exports = {
     GetObjectPosition(objectId) {
         for (let key in this.loadedMap.map) {
             if (this.loadedMap.map[key].includes(objectId)) {
-                return key;
+                return key.split(';');
             }
         }
         return undefined;

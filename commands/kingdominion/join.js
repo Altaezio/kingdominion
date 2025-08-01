@@ -6,16 +6,16 @@ module.exports = {
     category: 'kingdominion',
     data: new SlashCommandBuilder()
         .setName('join')
-        .setDescription('Gives you a fighter and allows you to join the fun')
+        .setDescription('Te donne un combattant et te permet de rejoindre l\'amusement')
         .setStringOption(option =>
             option.setName('name')
-                .setDescription('The name for you fighter')
+                .setDescription('Le nom que tu veux donner à ton combattant')
                 .setMinLength(3)
                 .setRequired(true)
         ),
     async execute(interaction) {
         const user = userHandler.GetLocalUserByAccountId(interaction.user.id);
         const newFighter = barracks.CreateFighter(interaction.options.getString('name'), user.id);
-        await interaction.reply({ content: `You got a new fighter: ${newFighter.name}` });
+        await interaction.reply({ content: `Tu as un nouveau combattant: ${newFighter.name}` });
     },
 };

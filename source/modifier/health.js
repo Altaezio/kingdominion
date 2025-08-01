@@ -28,7 +28,7 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, map, event) {
-        if (event.type == 'receiveDamage' && event.timing == 'during') {
+        if (event.type === 'receiveDamage' && event.timing === 'during') {
             console.assert(event.hasOwnProperty('amount'));
             if (event.amount > 0) {
                 let fighter = barrack.GetFighterById(fighterId);

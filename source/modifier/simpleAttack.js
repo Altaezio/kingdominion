@@ -41,8 +41,8 @@ module.exports = {
                 dist: REACH,
                 isMissed: attackIsMissed
             };
-            const action = { modifierId: this.id, type: "command", weight: 100, resultingEvent: resultingEvent };
-            return action;
+            const command = { modifierId: this.id, type: "actionCommand", weight: 100, resultingEvent: resultingEvent };
+            return command;
         }
         else {
             // INSTRUCTION TO MOVE TOWARDS CLOSEST

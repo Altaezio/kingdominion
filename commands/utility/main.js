@@ -5,7 +5,7 @@ module.exports = {
     category: 'utility',
     data: new SlashCommandBuilder()
         .setName('run')
-        .setDescription('Starts the game'),
+        .setDescription('Commence les jeux !'),
     async execute(interaction) {
         const alreadyRunning = schedule.scheduledJobs.includes('runningGame');
         if (alreadyRunning) {
@@ -30,9 +30,15 @@ module.exports = {
                 return;
             }
 
-            interaction.reply({ content: 'Do the battle' });
+            {
+                const currentTime = new Date();
+                console.log('[' + currentTime.toLocaleString('fr-FR') + ']: New turn');
+            }
 
+            let justStarted = false;
             if (arena.GetState() == "initialisation") {
+                justStarted = true;
+                interaction.reply({ content: 'Que les jeux commencent !' });
                 // give fighters positions
                 const spawnPoints = arena.GetSpawnPositions(nFighters);
                 for (let i = 0; i < nFighters; i++) {
@@ -42,6 +48,13 @@ module.exports = {
             }
 
             if (arena.GetState() == "battling") {
+                if (justStarted) {
+                    interaction.reply({ content: 'Premier tour' });
+                }
+                else {
+                    interaction.reply({ content: 'Nouveau tour' });
+                }
+
                 // Gather what info they want
                 let info = {};
                 fightersIds.forEach(fighterId => {
@@ -66,10 +79,14 @@ module.exports = {
                         if (mod.type === "action") {
                             let command = mod.GetCommand(barrack, fighterId, arena, info);
                             console.assert(command.hasOwnProperty(type), `Command does not have a type`);
-                            if (command.type === "command") {
+                            if (command.type === "actionCommand") {
+                                if (!commands.hasOwnProperty(fighterId))
+                                    commands[fighterId] = [];
                                 commands[fighterId].concat(command);
                             } else {
                                 console.assert(command.type === "instruction", `Command type \'${command}\' is not supported`);
+                                if (!instructions.hasOwnProperty(fighterId))
+                                    instructions[fighterId] = [];
                                 instructions[fighterId].concat(command);
                             }
                         }
@@ -77,11 +94,54 @@ module.exports = {
                 });
 
                 // Get the move commands based on the instructions
+                const fightersWithInstructions = Object.keys(instructions);
+                fightersWithInstructions.forEach(fighterId => {
+                    if (!commands.hasOwnProperty(fighterId))
+                        commands[fighterId] = [];
+                    instructions[fighterId].forEach(instruction => {
+                        const totalWeightToShare = instruction.weight;
+                        const firstNewInstructionInd = commands[fighterId].length;
+                        fighters[fighterId].modifierIds.forEach(modId => {
+                            if (modifierManager[modId].type === "move") {
+                                let moveCommand = modifierManager[modId].GetCommand(barrack, fighterId, arena, info, instruction);
+                                if (moveCommand !== undefined)
+                                    commands[fighterId].concat(moveCommand);
+                            }
+                        });
+                        const commandsAdded = commands[fighterId].length - firstNewInstructionInd;
+                        if (commandsAdded > 0) {
+                            const newCommandWeight = totalWeightToShare / commandsAdded;
+                            for (let i = firstNewInstructionInd; i < commands[fighterId].length; i++) {
+                                commands[fighterId][i].weight = newCommandWeight;
+                            }
+                        }
+                    });
+                });
 
                 // select one command per fighter 
+                let pickedCommands = {};
+                const fightersWithCommands = Object.keys(commands);
+                fightersWithCommands.forEach(fighterId => {
+                    let totalWeight = 0;
+                    commands[fighterId].forEach(command => {
+                        totalWeight += command.weight;
+                    });
+                    const pickedWeight = Math.random() * totalWeight;
+                    totalWeight = 0;
+                    const commandInd = commands[fighterId].findIndex(command => {
+                        totalWeight += command.weight;
+                        return totalWeight >= pickedWeight;
+                    });
+                    console.assert(commandInd >= 0, 'A command was not found');
+                    pickedCommands[fighterId] = commands[fighterId][commandInd];
+                });
 
-                // apply the selected commands in order
-                // Command order : action then move ??
+                // Add the selected commands to the respective fighters stack
+                // Do first all action commands
+
+                // Then the move commands
+
+
             }
 
             barrack.SaveFighters();
