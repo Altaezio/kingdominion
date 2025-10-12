@@ -3,14 +3,14 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 module.exports = {
     category: 'utility',
     data: new SlashCommandBuilder()
-        .setName('reload')
+        .setName('reload-command')
         .setDescription('Reloads a command.')
         .addStringOption(option =>
             option.setName('command')
                 .setDescription('The command to reload.')
                 .setRequired(true)),
     async execute(interaction) {
-        const commandName = interaction.options.getString('command', true).toLowerCase();
+        const commandName = interaction.options.getString('command', true);
         const command = interaction.client.commands.get(commandName);
 
         if (!command) {

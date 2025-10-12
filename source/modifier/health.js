@@ -13,7 +13,7 @@ module.exports = {
     GatherWantedInfo(info) {
     },
 
-    GatherInfo(barrack, fighterId, map, info) {
+    GatherInfo(barrack, fighterId, arena, info) {
         let fighter = barrack.GetFighterById(fighterId);
         if (info.hasOwnProperty('currentHealth')) {
             console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
@@ -27,7 +27,7 @@ module.exports = {
         }
     },
 
-    ProcessEvent(barrack, fighterId, map, event) {
+    ProcessEvent(barrack, fighterId, arena, event) {
         if (event.type === 'receiveDamage' && event.timing === 'during') {
             console.assert(event.hasOwnProperty('amount'));
             if (event.amount > 0) {

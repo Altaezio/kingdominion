@@ -17,24 +17,49 @@ const path = require('node:path');
 // events can have consequences as new events when finishing resolving
 
 module.exports = {
-    loadedModifiers: {},
+    loadedModifiers: undefined,
 
     LoadModifiers() {
-        const foldersPath = path.join(__dirname, 'source/modifier');
-        const modifierFolders = fs.readdirSync(foldersPath);
-        for (const folder of modifierFolders) {
-            const modifiersPath = path.join(foldersPath, folder);
-            const modifierFiles = fs.readdirSync(modifiersPath).filter(file => file.endsWith('.js'));
+        const modifierDirPath = path.join(__dirname, 'modifier');
+        const modifierFiles = fs.readdirSync(modifierDirPath).filter(file => file.endsWith('.js'));
+        this.loadedModifiers = {};
+        for (const file of modifierFiles) {
+            const filePath = path.join(modifierDirPath, file);
+            const modifier = require(filePath);
+
+            if (modifier.hasOwnProperty('id')) {
+                this.loadedModifiers[modifier.id] = modifier;
+            } else {
+                console.warn(`The modifier at ${filePath} is missing an id`);
+            }
+        }
+    },
+
+    GetModifiers() {
+        if (this.loadedModifiers === undefined)
+            this.LoadModifiers();
+        return this.loadedModifiers;
+    },
+
+    GetModifier(id) {
+        if (this.loadedModifiers !== undefined) {
+            return this.loadedModifiers[id];
+        }
+        else {
+            const modifierDirPath = path.join(__dirname, 'modifier');
+            const modifierFiles = fs.readdirSync(modifierDirPath).filter(file => file.endsWith('.js'));
             for (const file of modifierFiles) {
-                const filePath = path.join(modifiersPath, file);
+                const filePath = path.join(modifierDirPath, file);
                 const modifier = require(filePath);
 
-                if (modifier.hasOwnProperty('id')) {
-                    this.loadedModifiers[modifier.id] = modifier;
-                } else {
+                if (!modifier.hasOwnProperty('id')) {
                     console.warn(`The modifier at ${filePath} is missing an id`);
+                } else if (modifier.id === id) {
+                    return modifier;
                 }
             }
         }
+        console.error(`Modifier ${id} not found`);
+        return undefined;
     }
 }

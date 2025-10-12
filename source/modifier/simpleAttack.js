@@ -14,7 +14,7 @@ module.exports = {
         }
     },
 
-    GatherInfo(barrack, fighterId, map, info) {
+    GatherInfo(barrack, fighterId, arena, info) {
         if (info.hasOwnProperty('damage')) {
             info.damage = DAMAGE;
         }
@@ -29,7 +29,8 @@ module.exports = {
 
     GetCommand(barrack, fighterId, map, info) {
         if (info.hasOwnProperty('closestEnemies') &&
-            info.closestEnemies[0].distance <= REACH) {
+            info.closestEnemies.length > 0 &&
+            info.closestEnemies[0].dist <= REACH) {
             // ATAK
             const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
             const resultingEvent = {
@@ -46,7 +47,7 @@ module.exports = {
         }
         else {
             // INSTRUCTION TO MOVE TOWARDS CLOSEST
-            let instruction = { modifierId: this.id, type: "instruction", weight: 100, instruction: "moveTowardsClosest", reach: REACH };
+            let instruction = { modifierId: this.id, type: "instruction", weight: 100, instructionType: "moveTowardsClosest", reach: REACH };
             return instruction;
         }
     }

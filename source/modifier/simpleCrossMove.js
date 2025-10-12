@@ -9,9 +9,9 @@ module.exports = {
     GatherWantedInfo(info) {
     },
 
-    GatherInfo(barrack, fighterId, map, info) {
+    GatherInfo(barrack, fighterId, arena, info) {
         if (info.hasOwnProperty('closestEnemies')) {
-            info.closestEnemies = this.GetClosestEnemies(barrack, fighterId, map);
+            info.closestEnemies = this.GetClosestEnemies(barrack, fighterId, arena);
         }
     },
 
@@ -28,37 +28,44 @@ module.exports = {
                 newX -= event.amount;
             else if (event.direction === 'south')
                 newY -= event.amount;
-            map.MoveObject(fighterId, newX, newY);
+            map.MoveObjectXY(fighterId, newX, newY);
         }
     },
 
     GetCommand(barrack, fighterId, map, info, instruction) {
-        console.assert(instruction.hasOwnProperty('instruction'), `[${this.id}] [GetCommand] Instruction does not have an instruction`);
-        if (instruction.instruction === 'moveTowardsClosest') {
-            console.assert(instruction.hasOwnProperty('dist'), `[${this.id}] [GetCommand] Instruction does not have a reach (dist)`);
+        console.assert(instruction.hasOwnProperty('instructionType'), `[${this.id}] [GetCommand] Instruction does not have a type`);
+        if (instruction.instructionType === 'moveTowardsClosest') {
+            if (info.hasOwnProperty('closestEnemies') &&
+                info.closestEnemies.length > 0) {
+                console.assert(instruction.hasOwnProperty('reach'), `[${this.id}] [GetCommand] Instruction does not have a reach`);
 
-            const [x, y] = map.GetObjectPosition(fighterId);
-            const [targetX, targetY] = map.GetObjectPosition(instruction.closestEnemies[0].id);
-            const angle = Math.atan2(targetY - y, targetX - x);
-            let direction = 'east';
-            if (angle >= Math.PI / 4 && angle < 3 * Math.PI / 4)
-                direction = 'north';
-            else if (angle >= 3 * Math.PI / 4 && angle < -3 * Math.PI / 4)
-                direction = 'west';
-            else if (angle < -Math.PI / 4)
-                direction = 'south';
+                const [x, y] = map.GetObjectPosition(fighterId);
+                const [targetX, targetY] = map.GetObjectPosition(info.closestEnemies[0].id);
+                const angle = Math.atan2(targetY - y, targetX - x);
+                let direction = 'east';
+                if (angle >= Math.PI / 4 && angle < 3 * Math.PI / 4)
+                    direction = 'north';
+                else if (angle >= 3 * Math.PI / 4 && angle < -3 * Math.PI / 4)
+                    direction = 'west';
+                else if (angle < -Math.PI / 4)
+                    direction = 'south';
 
-            const resultingEvent = {
-                modifierId: this.id,
-                type: 'moveInDirection',
-                target: instruction.target,
-                author: fighterId,
-                amount: 1,
-                dist: instruction.dist,
-                direction: direction
-            };
-            const command = { modifierId: this.id, type: "moveCommand", weight: -1, resultingEvent: resultingEvent };
-            return command;
+                const resultingEvent = {
+                    modifierId: this.id,
+                    type: 'moveInDirection',
+                    target: instruction.target,
+                    author: fighterId,
+                    amount: 1,
+                    dist: instruction.reach,
+                    direction: direction
+                };
+                const command = { modifierId: this.id, type: "moveCommand", weight: -1, resultingEvent: resultingEvent };
+                return command;
+            }
+            else{
+                console.log(`[${this.id}] [GetCommand] No closest enemy for ${instruction.instruction}`);
+                return undefined;
+            }
         }
         else {
             console.log(`[${this.id}] [GetCommand] Instruction not handled`);
@@ -66,14 +73,14 @@ module.exports = {
         }
     },
 
-    GetClosestEnemies(barrack, fighterId, map) {
+    GetClosestEnemies(barrack, fighterId, arena) {
         const thisFighter = barrack.GetFighterById(fighterId);
-        const [x, y] = map.GetObjectPosition(fighterId);
+        const [x, y] = arena.GetObjectPosition(fighterId);
         let closestEnemies = [];
-        const allPositions = Object.keys(map.loadedMap);
+        const allPositions = Object.keys(arena.GetMap().map);
         allPositions.forEach((key) => {
             const [otherX, otherY] = key.split(';');
-            map.loadedMap[key].forEach((objectId) => {
+            arena.GetMap().map[key].forEach((objectId) => {
                 // assume everything is a fighter for now
                 if (objectId == thisFighter.id)
                     return;
@@ -84,7 +91,7 @@ module.exports = {
                     return;
 
                 const dist = Math.abs(otherX - x) + Math.abs(otherY - y);
-                closestEnemies.concat({ dist: dist, id: objectId });
+                closestEnemies = closestEnemies.concat({ dist: dist, id: objectId });
             });
         });
         closestEnemies.sort((a, b) => {

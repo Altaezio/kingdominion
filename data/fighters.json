@@ -1,4 +1,41 @@
 {
-    "allFighters": {},
-    "nextId": 0
+    "allFighters": {
+        "0": {
+            "id": 0,
+            "type": "fighter",
+            "name": "Shrek",
+            "icon": "🫏",
+            "userLocalId": 0,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            },
+            "currentTeamId": 0
+        },
+        "1": {
+            "id": 1,
+            "type": "fighter",
+            "name": "Fiona",
+            "icon": "🖨",
+            "userLocalId": 0,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            },
+            "currentTeamId": 1
+        }
+    },
+    "nextId": 2
 }

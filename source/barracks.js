@@ -1,22 +1,33 @@
-module.exports = {
-    loadedFighters: {},
+const fs = require('node:fs');
 
-    CreateFighter(name, userLocalId) {
-        const fighters = require('../data/fighters.json');
+module.exports = {
+    loadedFighterHolder: undefined,
+
+    CreateFighter(name, icon, userLocalId) {
+        const fighterHolder = this.GetFighterHolder();
         const newFighter = {
-            "id": fighters.nextId,
+            "id": fighterHolder.nextId,
             "type": "fighter",
             "name": name,
+            "icon": icon,
             "userLocalId": userLocalId,
             "modifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
             "modifierData": {},
             "currentTeamId": 0
         };
-        fighters.allFighters[newFighter.id] = newFighter;
-        fighters.nextId++;
+        fighterHolder.allFighters[newFighter.id] = newFighter;
+        fighterHolder.nextId++;
 
-        const data = JSON.stringify(fighters, null, 4);
-        fs.writeFileSync('../data/fighters.json', data);
+        const modifierManager = require(`./modifierManager.js`);
+        const modifiers = modifierManager.GetModifiers();
+        newFighter.modifierIds.forEach(modId => {
+            const mod = modifiers[modId];
+            if (mod.hasOwnProperty('defaultData'))
+                newFighter.modifierData[modId] = mod.defaultData;
+        });
+
+        const data = JSON.stringify(fighterHolder, null, 4);
+        fs.writeFileSync('./data/fighters.json', data);
         {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: New fighter created, name: ${name}, userLocalId: ${userLocalId}`);
@@ -24,40 +35,52 @@ module.exports = {
         return newFighter;
     },
 
+    NameIsTaken(name) {
+        const fighterHolder = this.GetFighterHolder();
+        const fightersIds = Object.keys(fighterHolder.allFighters);
+        const fighterId = fightersIds.find(id => fighterHolder.allFighters[id].name === name);
+        return fighterId !== undefined;
+    },
+
     LoadAllFighters() {
-        const fighters = require('../data/fighters.json');
-        this.loadedFighters = fighters.allFighters;
+        const fighterHolder = JSON.parse(fs.readFileSync(`./data/fighters.json`, 'utf8'));
+        this.loadedFighterHolder = fighterHolder;
         {
             const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: ${length(Object.keys(this.LoadAllFighters))} fighters loaded`);
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: ${Object.keys(this.loadedFighterHolder.allFighters).length} fighters loaded`);
         }
     },
 
     SaveFighters() {
-        const fighters = require('../data/fighters.json');
-        for (let fighter in this.loadedFighters) {
-            fighters[fighter.id] = fighter;
-        }
+        if (this.loadedFighterHolder === undefined)
+            return;
 
-        const data = JSON.stringify(fighters, null, 4);
-        fs.writeFileSync('../data/fighters.json', data);
+        const data = JSON.stringify(this.loadedFighterHolder, null, 4);
+        fs.writeFileSync('./data/fighters.json', data);
         {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Fighters saved`);
         }
     },
 
-    GetFighters() {
-        return this.loadedFighters;
+    GetFighterHolder() {
+        if (this.loadedFighterHolder === undefined)
+            return JSON.parse(fs.readFileSync(`./data/fighters.json`, 'utf8'));
+        else
+            return this.loadedFighterHolder;
     },
 
     GetFighterById(id) {
-        console.assert(this.loadedFighters.hasOwnProperty(id), `Fighter with id ${id} not loaded`);
-        return this.loadedFighters[id];
+        const fighterHolder = this.GetFighterHolder();
+        console.assert(fighterHolder.allFighters.hasOwnProperty(id), `Fighter with id ${id} not loaded`);
+        return fighterHolder.allFighters[id];
     },
 
     GetFighterByName(name) {
-        const fighter = this.loadedFighters.find(e => e.name === name);
+        const fighterHolder = this.GetFighterHolder();
+        const fightersIds = Object.keys(fighterHolder.allFighters);
+        const fighterId = fightersIds.find(id => fighterHolder.allFighters[id].name === name);
+        const fighter = fighterHolder.allFighters[fighterId]
         console.assert(fighter !== undefined, `Fighter ${name} not loaded`);
         return fighter;
     }
