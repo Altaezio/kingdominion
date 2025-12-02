@@ -32,7 +32,7 @@ module.exports = {
 
     GetLocalUserByLocalId(userLocalId) {
         const config = this.GetConfig();
-        const foundId = Object.keys(config.users).find(id => id === userLocalId);
+        const foundId = Object.keys(config.users).find(id => config.users[id].id === userLocalId);
         console.assert(foundId !== undefined, `User with local id ${userLocalId} was not found in config users`);
         const user = config.users[foundId];
         console.assert(user !== undefined, `User with local id ${userLocalId} was not found in config users`);

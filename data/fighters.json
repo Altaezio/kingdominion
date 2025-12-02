@@ -16,7 +16,10 @@
                     "currentHealth": 10
                 }
             },
-            "currentTeamId": 0
+            "currentTeamId": 0,
+            "isOutOfCombat": true,
+            "combatModifierIds": [],
+            "combatModifierData": {}
         },
         "1": {
             "id": 1,
@@ -34,7 +37,10 @@
                     "currentHealth": 10
                 }
             },
-            "currentTeamId": 1
+            "currentTeamId": 1,
+            "isOutOfCombat": true,
+            "combatModifierIds": [],
+            "combatModifierData": {}
         }
     },
     "nextId": 2

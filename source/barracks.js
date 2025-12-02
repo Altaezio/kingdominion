@@ -13,7 +13,10 @@ module.exports = {
             "userLocalId": userLocalId,
             "modifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
             "modifierData": {},
-            "currentTeamId": 0
+            "currentTeamId": 0,
+            "isOutOfCombat": true,
+            "combatModifierIds": [],
+            "combatModifierData": {}
         };
         fighterHolder.allFighters[newFighter.id] = newFighter;
         fighterHolder.nextId++;

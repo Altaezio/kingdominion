@@ -24,7 +24,22 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, map, event) {
-
+        if (event.type === 'sendDamage' &&
+            event.author === fighterId &&
+            event.target === fighterId &&
+            event.timing === 'during'
+        ) {
+            const receiveDamage = {
+                modifierId: this.id,
+                type: 'receiveDamage',
+                target: event.finalTarget,
+                author: fighterId,
+                amount: DAMAGE,
+                dist: REACH,
+                isMissed: attackIsMissed
+            };
+            event.consequences.push(receiveDamage);
+        }
     },
 
     GetCommand(barrack, fighterId, map, info) {
@@ -35,12 +50,13 @@ module.exports = {
             const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
             const resultingEvent = {
                 modifierId: this.id,
-                type: 'receiveDamage',
-                target: info.closestEnemies[0].id,
+                type: 'sendDamage',
+                target: fighterId,
                 author: fighterId,
                 amount: DAMAGE,
                 dist: REACH,
-                isMissed: attackIsMissed
+                isMissed: attackIsMissed,
+                finalTarget: info.closestEnemies[0].id
             };
             const command = { modifierId: this.id, type: "actionCommand", weight: 100, resultingEvent: resultingEvent };
             return command;

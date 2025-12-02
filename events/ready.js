@@ -4,6 +4,7 @@ module.exports = {
     name: Events.ClientReady,
     once: true,
     execute(client) {
-        console.log(`Ready! logged in as ${client.user.tag}`);
+        const currentTime = new Date();
+        console.log(`[${currentTime.toLocaleString('fr-FR')}] Ready! logged in as ${client.user.tag}`);
     },
 };

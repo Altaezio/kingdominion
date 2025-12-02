@@ -2,6 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
 const { channelId } = require('../../settings.json');
+const { ShuffleInPlace } = require('../../utils.js');
 
 module.exports = {
     category: 'utility',
@@ -34,16 +35,21 @@ module.exports = {
 
                 const fighterHolder = barrack.GetFighterHolder();
                 const fightersIds = Object.keys(fighterHolder.allFighters);
+
+                if (arena.GetState() !== 'initialisation') {
+                    for (let i = 0; i < fightersIds.length; i++) {
+                        if (fighterHolder.allFighters[fightersIds[i]].isOutOfCombat) {
+                            fightersIds.splice(i, 1);
+                            i--;
+                        }
+                    }
+                }
+
                 const nFighters = fightersIds.length;
                 if (nFighters < 2) {
                     console.log(`Not enough fighters (${nFighters})`);
                     channel.send({ content: `Not enough fighters (${nFighters})`, flags: MessageFlags.Ephemeral });
                     return;
-                }
-
-                {
-                    const currentTime = new Date();
-                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: New turn');
                 }
 
                 let justStarted = false;
@@ -60,10 +66,19 @@ module.exports = {
                     // give fighters positions
                     const spawnPoints = arena.GetSpawnPositions(nFighters);
                     for (let i = 0; i < nFighters; i++) {
-                        arena.AddObjectsToPosition(fightersIds[i], spawnPoints[i]);
+                        const fighterId = fightersIds[i]
+                        const fighter = fighterHolder.allFighters[fighterId]
+                        arena.AddObjectsToPosition(fighterId, spawnPoints[i]);
+                        fighter.isOutOfCombat = false;
+                        fighter.combatModifierIds = fighter.modifierIds.toSpliced();
+                        fighter.combatModifierData = structuredClone(fighter.modifierData);
                     }
                     channel.send({ content: `Départ :\n${arena.GetMapVisualisation()}` });
                     arena.SetState("battling");
+                }
+                else {
+                    const currentTime = new Date();
+                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: New turn');
                 }
 
                 const fighterPositions = {};
@@ -177,12 +192,27 @@ module.exports = {
                     });
                     console.debug('Picked commands :', pickedCommands);
 
-                    // Add the selected commands to the respective fighters stack
-                    // Do first all action commands
-                    // console.log('Do actions commands');
+                    // Sort in order of actions
+                    let fighterInOrder = fightersWithCommands.toSpliced(); // copy
+                    ShuffleInPlace(fighterInOrder);
+                    let fighterOrderTxt = '';
+                    for (let i = 0; i < fighterInOrder.length; i++) {
+                        const fighterId = fighterInOrder[i];
+                        const fighter = fighterHolder.allFighters[fighterId];
+                        fighterOrderTxt += ` ${fighter.icon} ${fighter.name}`
+                        if (i < fighterInOrder.length - 1)
+                            fighterOrderTxt += ' < '
+                    }
+                    await channel.send({ content: `Ordre d'actions : ${fighterOrderTxt}` })
 
-                    // Then the move commands
-                    // console.log('Do move commands');
+                    // Execute actions in order
+                    const eventStack = [];
+                    for (let i = 0; i < fighterInOrder.length; i++) {
+                        const fighterId = fighterInOrder[i];
+                        const command = pickedCommands[fighterId];
+                        eventStack.push(command.resultingEvent);
+                        ProcessEvents(barrack, arena, eventStack, fighterInOrder, fighterId);
+                    }
 
                     // End state visualisation
                     await channel.send({ content: `Après actions :\n${arena.GetMapVisualisation()}` });
@@ -211,5 +241,42 @@ module.exports = {
                 }
             }
         });
+    },
+
+    ProcessEvents(barrack, arena, eventStack, fighterOrder, activeFighterId) {
+        const fighterHolder = barrack.GetFighterHolder();
+        const activeFirstFighterOrder = fighterOrder.toSpliced();
+        let activeFighterInd = activeFirstFighterOrder.findIndex(activeFighterId);
+        activeFirstFighterOrder.unshift(activeFighterId);
+        activeFirstFighterOrder.splice(activeFighterInd, 1);
+        let failSafe = 1000;
+        while (eventStack.length > 0 && failSafe > 0) {
+            failSafe--;
+            const event = eventStack.pop();
+            if (!event.hasOwnProperty('timing'))
+                event.timing = 'before';
+            const fighter = fighterHolder.allFighters[event.target];
+            fighter.modifierIds.forEach(modId => {
+                const mod = modifierManager.GetModifier(modId);
+                mod.ProcessEvent(barrack, event.target, arena, event);
+            });
+            let consequences = []
+            if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
+                consequences = structuredClone(event.consequences);
+
+            if (event.timing !== 'after') {
+                if (event.timing === 'before')
+                    event.timing = 'during';
+                else if (event.timing === 'during')
+                    event.timing = 'after';
+                event.consequences = [];
+                eventStack.push(event);
+            }
+
+            consequences.forEach(consequence => {
+                eventStack.push(consequence);
+            });
+        }
+        console.assert(failSafe > 0, 'Infinite loop or too many events');
     }
 };

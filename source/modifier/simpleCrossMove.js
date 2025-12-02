@@ -16,7 +16,10 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, map, event) {
-        if (event.modifierId === this.id && event.type === 'moveInDirection' && event.timing === 'during') {
+        if (event.modifierId === this.id &&
+            event.type === 'moveInDirection' &&
+            event.timing === 'during'
+        ) {
             const [x, y] = map.GetObjectPosition(fighterId);
             let newX = x;
             let newY = y;
@@ -62,7 +65,7 @@ module.exports = {
                 const command = { modifierId: this.id, type: "moveCommand", weight: -1, resultingEvent: resultingEvent };
                 return command;
             }
-            else{
+            else {
                 console.log(`[${this.id}] [GetCommand] No closest enemy for ${instruction.instruction}`);
                 return undefined;
             }

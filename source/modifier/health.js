@@ -28,7 +28,7 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, arena, event) {
-        if (event.type === 'receiveDamage' && event.timing === 'during') {
+        if (event.type === 'receiveDamage' && event.timing === 'during' && event.target === fighterId) {
             console.assert(event.hasOwnProperty('amount'));
             if (event.amount > 0) {
                 let fighter = barrack.GetFighterById(fighterId);
@@ -40,14 +40,18 @@ module.exports = {
                 if (fighter.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {
                         modifierId: this.id,
-                        type: 'lose',
+                        type: 'outOfCombat',
                         target: fighterId,
                         author: fighterId,
                         reason: 'notEnoughHealth',
                     };
-                    event.consequence.push(lostEvent);
+                    event.consequences.push(lostEvent);
                 }
             }
+        }
+        else if (event.type === 'outOfCombat' && event.timing === 'during' && event.target === fighterId) {
+            let fighter = barrack.GetFighterById(fighterId);
+            fighter.isOutOfCombat = true;
         }
     }
 }

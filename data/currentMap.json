@@ -1,5 +1,5 @@
 {
-    "state": "battling",
+    "state": "initialisation",
     "width": 10,
     "height": 10,
     "map": {
