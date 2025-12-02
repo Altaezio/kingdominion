@@ -5,8 +5,7 @@ module.exports = {
     loadedMap: undefined,
 
     LoadMap(mapName) {
-        const map = JSON.parse(fs.readFileSync(`./data/${mapName}.json`, 'utf8'));
-        this.loadedMap = map;
+        this.loadedMap = JSON.parse(fs.readFileSync(`./data/${mapName}.json`, 'utf8'));
         {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Map loaded`);
@@ -15,9 +14,8 @@ module.exports = {
 
     GetMap(mapName = "currentMap") {
         if (this.loadedMap === undefined)
-            return JSON.parse(fs.readFileSync(`./data/${mapName}.json`, 'utf8'));
-        else
-            return this.loadedMap;
+            this.LoadMap(mapName);
+        return this.loadedMap;
     },
 
     SaveMap(mapName) {
@@ -39,6 +37,8 @@ module.exports = {
     SetState(newState) {
         const map = this.GetMap();
         const oldState = map.state;
+        console.assert(newState === 'initialisation' || newState === 'battling',
+            `'${newState}' is not a proper state`);
         map.state = newState;
         {
             const currentTime = new Date();
@@ -87,6 +87,9 @@ module.exports = {
         if (!map.map.hasOwnProperty(newPositionStr))
             map.map[newPositionStr] = [];
         map.map[newPositionStr] = map.map[newPositionStr].concat(objectId);
+
+        if (map.map[oldPositionStr].length == 0)
+            delete map.map[oldPositionStr];
     },
 
     MoveObjectXY(objectId, x, y) {
@@ -110,7 +113,8 @@ module.exports = {
         const map = this.GetMap();
         for (let key in map.map) {
             if (map.map[key].includes(objectId)) {
-                return key.split(';');
+                let posArray = key.split(';');
+                return { 'x': Number(posArray[0]), 'y': Number(posArray[1]) };
             }
         }
         return undefined;

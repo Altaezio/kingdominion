@@ -36,21 +36,50 @@ module.exports = {
                 const fighterHolder = barrack.GetFighterHolder();
                 const fightersIds = Object.keys(fighterHolder.allFighters);
 
-                if (arena.GetState() !== 'initialisation') {
+                if (arena.GetState() === 'initialisation') {
+                    let nFighters = fightersIds.length;
+                    if (nFighters < 2) {
+                        console.log(`Not enough fighters to start (${nFighters})`);
+                        channel.send({ content: `Not enough fighters to start (${nFighters})`, flags: MessageFlags.Ephemeral });
+                        return;
+                    }
+                }
+                else {
+                    let fightersPerTeam = {};
+                    let fighterAlive = undefined;
                     for (let i = 0; i < fightersIds.length; i++) {
-                        if (fighterHolder.allFighters[fightersIds[i]].isOutOfCombat) {
+                        const fighter = fighterHolder.allFighters[fightersIds[i]];
+                        if (fighter.isOutOfCombat) {
                             fightersIds.splice(i, 1);
                             i--;
                         }
+                        else {
+                            fighterAlive = fighter;
+                            if (!fightersPerTeam.hasOwnProperty(fighter.currentTeamId))
+                                fightersPerTeam[fighter.currentTeamId] = 0;
+                            fightersPerTeam[fighter.currentTeamId]++;
+                        }
+                    }
+                    const nTeams = Object.keys(fightersPerTeam).length;
+                    if (nTeams === 1) {
+                        // WINNER
+                        channel.send({ content: `Bravo à ${fighterAlive.icon}${fighterAlive.name} pour sa victoire !` });
+                        arena.SetState('initialisation');
+                        arena.SaveMap('currentMap');
+                        job.cancel(); // stopping the schedule for now 
+                        return;
+                    }
+                    else if (nTeams === 0) {
+                        // EQUALITY
+                        channel.send({ content: `Bravo à personne pour cette égalité` });
+                        arena.SetState('initialisation');
+                        arena.SaveMap('currentMap');
+                        job.cancel(); // stopping the schedule for now 
+                        return;
                     }
                 }
 
                 const nFighters = fightersIds.length;
-                if (nFighters < 2) {
-                    console.log(`Not enough fighters (${nFighters})`);
-                    channel.send({ content: `Not enough fighters (${nFighters})`, flags: MessageFlags.Ephemeral });
-                    return;
-                }
 
                 let justStarted = false;
                 if (arena.GetState() == "initialisation") {
@@ -63,6 +92,9 @@ module.exports = {
                             fs.writeFileSync('./data/interactionData.json', data);
                         });
 
+                    // reset map
+                    arena.GetMap().map = {};
+
                     // give fighters positions
                     const spawnPoints = arena.GetSpawnPositions(nFighters);
                     for (let i = 0; i < nFighters; i++) {
@@ -70,8 +102,9 @@ module.exports = {
                         const fighter = fighterHolder.allFighters[fighterId]
                         arena.AddObjectsToPosition(fighterId, spawnPoints[i]);
                         fighter.isOutOfCombat = false;
-                        fighter.combatModifierIds = fighter.modifierIds.toSpliced();
-                        fighter.combatModifierData = structuredClone(fighter.modifierData);
+                        console.debug(fighter)
+                        fighter.modifierIds = fighter.baseModifierIds.toSpliced();
+                        fighter.modifierData = structuredClone(fighter.baseModifierData);
                     }
                     channel.send({ content: `Départ :\n${arena.GetMapVisualisation()}` });
                     arena.SetState("battling");
@@ -143,7 +176,8 @@ module.exports = {
                     });
                     console.debug('Commands after adding actions :', commands);
                     console.debug('Instructions :', instructions);
-                    console.debug('First Instructions :', instructions[0]);
+                    if (instructions.length > 0)
+                        console.debug('First Instructions :', instructions[0]);
 
                     // Get the move commands based on the instructions
                     console.log('Get move commands');
@@ -170,7 +204,7 @@ module.exports = {
                             }
                         });
                     });
-                    console.debug('Commands after adding moves :', commands);
+                    // console.debug('Commands after adding moves :', commands);
 
                     // select one command per fighter 
                     console.log('Select commands for fighters')
@@ -193,28 +227,64 @@ module.exports = {
                     console.debug('Picked commands :', pickedCommands);
 
                     // Sort in order of actions
-                    let fighterInOrder = fightersWithCommands.toSpliced(); // copy
-                    ShuffleInPlace(fighterInOrder);
+                    let fightersInOrder = fightersWithCommands.toSpliced(); // copy
+                    ShuffleInPlace(fightersInOrder);
                     let fighterOrderTxt = '';
-                    for (let i = 0; i < fighterInOrder.length; i++) {
-                        const fighterId = fighterInOrder[i];
+                    for (let i = 0; i < fightersInOrder.length; i++) {
+                        const fighterId = fightersInOrder[i];
                         const fighter = fighterHolder.allFighters[fighterId];
                         fighterOrderTxt += ` ${fighter.icon} ${fighter.name}`
-                        if (i < fighterInOrder.length - 1)
+                        if (i < fightersInOrder.length - 1)
                             fighterOrderTxt += ' < '
                     }
                     await channel.send({ content: `Ordre d'actions : ${fighterOrderTxt}` })
 
                     // Execute actions in order
                     const eventStack = [];
-                    for (let i = 0; i < fighterInOrder.length; i++) {
-                        const fighterId = fighterInOrder[i];
+                    for (let i = 0; i < fightersInOrder.length; i++) {
+                        const fighterId = fightersInOrder[fightersInOrder.length - 1 - i];
                         const command = pickedCommands[fighterId];
                         eventStack.push(command.resultingEvent);
-                        ProcessEvents(barrack, arena, eventStack, fighterInOrder, fighterId);
                     }
 
+                    // Process all events
+                    let failSafe = 1000;
+                    while (eventStack.length > 0 && failSafe > 0) {
+                        failSafe--;
+                        const event = eventStack.pop();
+
+                        // const author = fighterHolder.allFighters[event.author];
+                        // if (author.isOutOfCombat)
+                        //     continue; // Should dying fizzle events emitted by dead ??
+
+                        if (!event.hasOwnProperty('timing'))
+                            event.timing = 'before';
+                        const fighter = fighterHolder.allFighters[event.target];
+                        fighter.modifierIds.forEach(modId => {
+                            const mod = modifierManager.GetModifier(modId);
+                            mod.ProcessEvent(barrack, event.target, arena, event);
+                        });
+                        let consequences = []
+                        if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
+                            consequences = structuredClone(event.consequences);
+
+                        if (event.timing !== 'after') {
+                            if (event.timing === 'before')
+                                event.timing = 'during';
+                            else if (event.timing === 'during')
+                                event.timing = 'after';
+                            event.consequences = [];
+                            eventStack.push(event);
+                        }
+
+                        consequences.forEach(consequence => {
+                            eventStack.push(consequence);
+                        });
+                    }
+                    console.assert(failSafe > 0, 'Infinite loop or too many events');
+
                     // End state visualisation
+                    console.debug('[DEBUG]', arena.GetMap());
                     await channel.send({ content: `Après actions :\n${arena.GetMapVisualisation()}` });
                 }
 
@@ -241,42 +311,5 @@ module.exports = {
                 }
             }
         });
-    },
-
-    ProcessEvents(barrack, arena, eventStack, fighterOrder, activeFighterId) {
-        const fighterHolder = barrack.GetFighterHolder();
-        const activeFirstFighterOrder = fighterOrder.toSpliced();
-        let activeFighterInd = activeFirstFighterOrder.findIndex(activeFighterId);
-        activeFirstFighterOrder.unshift(activeFighterId);
-        activeFirstFighterOrder.splice(activeFighterInd, 1);
-        let failSafe = 1000;
-        while (eventStack.length > 0 && failSafe > 0) {
-            failSafe--;
-            const event = eventStack.pop();
-            if (!event.hasOwnProperty('timing'))
-                event.timing = 'before';
-            const fighter = fighterHolder.allFighters[event.target];
-            fighter.modifierIds.forEach(modId => {
-                const mod = modifierManager.GetModifier(modId);
-                mod.ProcessEvent(barrack, event.target, arena, event);
-            });
-            let consequences = []
-            if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
-                consequences = structuredClone(event.consequences);
-
-            if (event.timing !== 'after') {
-                if (event.timing === 'before')
-                    event.timing = 'during';
-                else if (event.timing === 'during')
-                    event.timing = 'after';
-                event.consequences = [];
-                eventStack.push(event);
-            }
-
-            consequences.forEach(consequence => {
-                eventStack.push(consequence);
-            });
-        }
-        console.assert(failSafe > 0, 'Infinite loop or too many events');
     }
 };

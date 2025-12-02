@@ -13,13 +13,21 @@
             ],
             "modifierData": {
                 "health": {
-                    "currentHealth": 10
+                    "currentHealth": 0
                 }
             },
             "currentTeamId": 0,
             "isOutOfCombat": true,
-            "combatModifierIds": [],
-            "combatModifierData": {}
+            "baseModifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "baseModifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
         },
         "1": {
             "id": 1,
@@ -38,9 +46,17 @@
                 }
             },
             "currentTeamId": 1,
-            "isOutOfCombat": true,
-            "combatModifierIds": [],
-            "combatModifierData": {}
+            "isOutOfCombat": false,
+            "baseModifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "baseModifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
         }
     },
     "nextId": 2

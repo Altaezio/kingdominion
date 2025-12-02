@@ -36,7 +36,7 @@ module.exports = {
                 author: fighterId,
                 amount: DAMAGE,
                 dist: REACH,
-                isMissed: attackIsMissed
+                isMissed: event.isMissed
             };
             event.consequences.push(receiveDamage);
         }

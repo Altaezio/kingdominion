@@ -11,12 +11,12 @@ module.exports = {
             "name": name,
             "icon": icon,
             "userLocalId": userLocalId,
-            "modifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
+            "baseModifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
+            "baseModifierData": {},
+            "modifierIds": [],
             "modifierData": {},
             "currentTeamId": 0,
             "isOutOfCombat": true,
-            "combatModifierIds": [],
-            "combatModifierData": {}
         };
         fighterHolder.allFighters[newFighter.id] = newFighter;
         fighterHolder.nextId++;

@@ -30,12 +30,16 @@ module.exports = {
     ProcessEvent(barrack, fighterId, arena, event) {
         if (event.type === 'receiveDamage' && event.timing === 'during' && event.target === fighterId) {
             console.assert(event.hasOwnProperty('amount'));
-            if (event.amount > 0) {
+            let doTakeDamage = event.amount > 0;
+            if (doTakeDamage && event.hasOwnProperty('isMissed'))
+                doTakeDamage = event.isMissed;
+
+            if (doTakeDamage) {
                 let fighter = barrack.GetFighterById(fighterId);
                 console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
                 console.assert(fighter.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
                 fighter.modifierData[this.id].currentHealth -= event.amount;
-                event.log.push(`Le combatant ${fighter.name} a perdu ${event.amount} points de vie`);
+                // event.log.push(`Le combatant ${fighter.name} a perdu ${event.amount} points de vie`);
 
                 if (fighter.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {

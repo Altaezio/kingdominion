@@ -13,7 +13,6 @@ module.exports = {
         const fighterHolder = barracks.GetFighterHolder();
         let fighterListText = `Liste de tous les combattants :`;
         const fighterIds = Object.keys(fighterHolder.allFighters);
-        console.debug("[DEBUG] fighterids", fighterIds);
         fighterIds.forEach((id) => {
             const fighter = barracks.GetFighterById(id);
             const user = userHandler.GetLocalUserByLocalId(fighter.userLocalId);
