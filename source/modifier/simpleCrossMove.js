@@ -18,20 +18,24 @@ module.exports = {
     ProcessEvent(barrack, fighterId, map, event) {
         if (event.modifierId === this.id &&
             event.type === 'moveInDirection' &&
+            event.target === fighterId &&
             event.timing === 'during'
         ) {
-            const fighterPos = map.GetObjectPosition(fighterId);
-            let newX = fighterPos.x;
-            let newY = fighterPos.y;
-            if (event.direction === 'east')
-                newX += event.amount;
-            else if (event.direction === 'north')
-                newY += event.amount;
-            else if (event.direction === 'west')
-                newX -= event.amount;
-            else if (event.direction === 'south')
-                newY -= event.amount;
-            map.MoveObjectXY(fighterId, newX, newY);
+            const fighter = barrack.GetFighterHolder().allFighters[fighterId];
+            if (!fighter.outOfCombat) {
+                const fighterPos = map.GetObjectPosition(fighterId);
+                let newX = fighterPos.x;
+                let newY = fighterPos.y;
+                if (event.direction === 'east')
+                    newX += event.amount;
+                else if (event.direction === 'north')
+                    newY += event.amount;
+                else if (event.direction === 'west')
+                    newX -= event.amount;
+                else if (event.direction === 'south')
+                    newY -= event.amount;
+                map.MoveObjectXY(fighterId, newX, newY);
+            }
         }
     },
 
@@ -97,7 +101,7 @@ module.exports = {
                     return;
 
                 const dist = Math.abs(otherX - fighterPos.x) + Math.abs(otherY - fighterPos.y);
-                closestEnemies = closestEnemies.concat({ dist: dist, id: objectId });
+                closestEnemies.push({ dist: dist, id: objectId });
             });
         });
         closestEnemies.sort((a, b) => {

@@ -28,16 +28,19 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, arena, event) {
-        if (event.type === 'receiveDamage' && event.timing === 'during' && event.target === fighterId) {
+        if (event.type === 'receiveDamage' &&
+            event.target === fighterId &&
+            event.timing === 'during'
+        ) {
             console.assert(event.hasOwnProperty('amount'));
             let doTakeDamage = event.amount > 0;
             if (doTakeDamage && event.hasOwnProperty('isMissed'))
-                doTakeDamage = event.isMissed;
+                doTakeDamage = !event.isMissed;
 
             if (doTakeDamage) {
-                let fighter = barrack.GetFighterById(fighterId);
+                const fighter = barrack.GetFighterById(fighterId);
                 console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
-                console.assert(fighter.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
+                // console.assert(fighter.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
                 fighter.modifierData[this.id].currentHealth -= event.amount;
                 // event.log.push(`Le combatant ${fighter.name} a perdu ${event.amount} points de vie`);
 
@@ -47,13 +50,16 @@ module.exports = {
                         type: 'outOfCombat',
                         target: fighterId,
                         author: fighterId,
-                        reason: 'notEnoughHealth',
+                        reason: 'notEnoughHealth'
                     };
                     event.consequences.push(lostEvent);
                 }
             }
         }
-        else if (event.type === 'outOfCombat' && event.timing === 'during' && event.target === fighterId) {
+        else if (event.type === 'outOfCombat' &&
+            event.timing === 'during' &&
+            event.target === fighterId
+        ) {
             let fighter = barrack.GetFighterById(fighterId);
             fighter.isOutOfCombat = true;
         }

@@ -13,11 +13,11 @@
             ],
             "modifierData": {
                 "health": {
-                    "currentHealth": 0
+                    "currentHealth": 5
                 }
             },
             "currentTeamId": 0,
-            "isOutOfCombat": true,
+            "isOutOfCombat": false,
             "baseModifierIds": [
                 "health",
                 "simpleAttack",
@@ -33,7 +33,7 @@
             "id": 1,
             "type": "fighter",
             "name": "Fiona",
-            "icon": "🖨",
+            "icon": "🦤",
             "userLocalId": 0,
             "modifierIds": [
                 "health",
@@ -42,11 +42,11 @@
             ],
             "modifierData": {
                 "health": {
-                    "currentHealth": 10
+                    "currentHealth": 0
                 }
             },
             "currentTeamId": 1,
-            "isOutOfCombat": false,
+            "isOutOfCombat": true,
             "baseModifierIds": [
                 "health",
                 "simpleAttack",

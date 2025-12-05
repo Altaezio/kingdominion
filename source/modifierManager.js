@@ -18,6 +18,12 @@ const path = require('node:path');
 // these consequences will resolve before the next timing of the main event
 // events are added and resolved as a stack
 
+// the event itself should look if the author is outofcombat or not
+// othewise an event in the stack will resolve
+
+// all events are passed through all fighters so they can react if they want
+// the order is always the target and then the others
+
 module.exports = {
     loadedModifiers: undefined,
 

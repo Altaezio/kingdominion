@@ -1,13 +1,13 @@
 {
-    "state": "battling",
-    "width": 10,
-    "height": 10,
+    "state": "initialisation",
+    "width": 5,
+    "height": 5,
     "map": {
-        "3;6": [
-            "1"
-        ],
-        "3;5": [
+        "3;4": [
             "0"
+        ],
+        "3;3": [
+            "1"
         ]
     }
 }

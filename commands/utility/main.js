@@ -23,6 +23,7 @@ module.exports = {
             const barrack = require('../../source/barracks.js');
             const arena = require('../../source/arena.js');
             const modifierManager = require('../../source/modifierManager.js');
+            const eventTextConstructor = require('../../source/eventTextConstructor.js');
 
             try {
                 {
@@ -63,7 +64,8 @@ module.exports = {
                     const nTeams = Object.keys(fightersPerTeam).length;
                     if (nTeams === 1) {
                         // WINNER
-                        channel.send({ content: `Bravo à ${fighterAlive.icon}${fighterAlive.name} pour sa victoire !` });
+                        console.log(barrack.GetFighterFullName(fighterAlive.id), 'won');
+                        channel.send({ content: `Bravo à ${barrack.GetFighterFullName(fighterAlive.id)} pour sa victoire !` });
                         arena.SetState('initialisation');
                         arena.SaveMap('currentMap');
                         job.cancel(); // stopping the schedule for now 
@@ -71,6 +73,7 @@ module.exports = {
                     }
                     else if (nTeams === 0) {
                         // EQUALITY
+                        console.log('Draw');
                         channel.send({ content: `Bravo à personne pour cette égalité` });
                         arena.SetState('initialisation');
                         arena.SaveMap('currentMap');
@@ -83,8 +86,10 @@ module.exports = {
 
                 let justStarted = false;
                 if (arena.GetState() == "initialisation") {
+                    const currentTime = new Date();
+                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: Initialisation');
                     justStarted = true;
-                    await channel.send({ content: 'Que les jeux commencent !' })
+                    await ({ content: 'Que les jeux commencent !' })
                         .then((message) => {
                             const interactionData = JSON.parse(fs.readFileSync(`./data/interactionData.json`, 'utf8'));
                             interactionData.runCommandMessageId = message.id.toString();
@@ -95,18 +100,19 @@ module.exports = {
                     // reset map
                     arena.GetMap().map = {};
 
-                    // give fighters positions
+                    // give fighters positions and reset their data
                     const spawnPoints = arena.GetSpawnPositions(nFighters);
                     for (let i = 0; i < nFighters; i++) {
                         const fighterId = fightersIds[i]
                         const fighter = fighterHolder.allFighters[fighterId]
                         arena.AddObjectsToPosition(fighterId, spawnPoints[i]);
                         fighter.isOutOfCombat = false;
-                        console.debug(fighter)
                         fighter.modifierIds = fighter.baseModifierIds.toSpliced();
                         fighter.modifierData = structuredClone(fighter.baseModifierData);
+                        console.debug(fighter)
                     }
-                    channel.send({ content: `Départ :\n${arena.GetMapVisualisation()}` });
+                    console.log('Visualisation of the map');
+                    await channel.send({ content: `Départ :\n${arena.GetMapVisualisation()}` });
                     arena.SetState("battling");
                 }
                 else {
@@ -120,172 +126,150 @@ module.exports = {
                     fighterPositions[id] = position;
                 })
                 const fightersOnMapIds = Object.keys(fighterPositions);
-                // console.debug('fighters on map', fightersOnMapIds);
+                console.debug('fighters on map', fightersOnMapIds);
 
                 if (arena.GetState() == "battling") {
                     if (justStarted) {
-                        await channel.send({ content: 'Premier tour' });
+                        const text = '--- Premier tour ---';
+                        console.log(text);
+                        await channel.send({ content: text });
                     }
                     else {
-                        await channel.send({ content: 'Nouveau tour' });
+                        const text = '--- Nouveau tour ---';
+                        console.log(text);
+                        await channel.send({ content: text }); // TODO count turns
                     }
 
-                    // Gather what info they want
-                    console.log('Gather wanted info');
-                    let info = {};
-                    fightersOnMapIds.forEach(fighterId => {
-                        info[fighterId] = {};
-                        fighterHolder.allFighters[fighterId].modifierIds.forEach(modId => {
-                            modifierManager.GetModifier(modId).GatherWantedInfo(info[fighterId]);
-                        });
-                    });
-                    console.debug('Wanted info:', info);
-
-                    // Gather the info wanted
-                    console.log('Gather actual info');
-                    fightersOnMapIds.forEach(fighterId => {
-                        fighterHolder.allFighters[fighterId].modifierIds.forEach(modId => {
-                            modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arena, info[fighterId]);
-                        });
-                    });
-                    console.debug('Gathered info:', info);
-                    console.debug('First info :', info[0]);
-
-                    // Get the commands and instructions
-                    console.log('Get the commands and instructions');
-                    let commands = {};
-                    let instructions = {};
-                    fightersOnMapIds.forEach(fighterId => {
-                        fighterHolder.allFighters[fighterId].modifierIds.forEach(modId => {
-                            const mod = modifierManager.GetModifier(modId);
-                            if (mod.type === "action") {
-                                let command = mod.GetCommand(barrack, fighterId, arena, info[fighterId]);
-                                console.assert(command.hasOwnProperty("type"), `Command does not have a type`);
-                                if (command.type === "actionCommand") {
-                                    if (!commands.hasOwnProperty(fighterId))
-                                        commands[fighterId] = [];
-                                    commands[fighterId] = commands[fighterId].concat(command);
-                                } else {
-                                    console.assert(command.type === "instruction", `Command type \'${command}\' is not supported`);
-                                    if (!instructions.hasOwnProperty(fighterId))
-                                        instructions[fighterId] = [];
-                                    instructions[fighterId] = instructions[fighterId].concat(command);
-                                }
-                            }
-                        });
-                    });
-                    console.debug('Commands after adding actions :', commands);
-                    console.debug('Instructions :', instructions);
-                    if (instructions.length > 0)
-                        console.debug('First Instructions :', instructions[0]);
-
-                    // Get the move commands based on the instructions
-                    console.log('Get move commands');
-                    const fightersWithInstructions = Object.keys(instructions);
-                    fightersWithInstructions.forEach(fighterId => {
-                        if (!commands.hasOwnProperty(fighterId))
-                            commands[fighterId] = [];
-                        instructions[fighterId].forEach(instruction => {
-                            const totalWeightToShare = instruction.weight;
-                            const firstNewInstructionInd = commands[fighterId].length;
-                            fighterHolder.allFighters[fighterId].modifierIds.forEach(modId => {
-                                if (modifierManager.GetModifier(modId).type === "move") {
-                                    let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arena, info[fighterId], instruction);
-                                    if (moveCommand !== undefined)
-                                        commands[fighterId] = commands[fighterId].concat(moveCommand);
-                                }
-                            });
-                            const commandsAdded = commands[fighterId].length - firstNewInstructionInd;
-                            if (commandsAdded > 0) {
-                                const newCommandWeight = totalWeightToShare / commandsAdded;
-                                for (let i = firstNewInstructionInd; i < commands[fighterId].length; i++) {
-                                    commands[fighterId][i].weight = newCommandWeight;
-                                }
-                            }
-                        });
-                    });
-                    // console.debug('Commands after adding moves :', commands);
-
-                    // select one command per fighter 
-                    console.log('Select commands for fighters')
-                    let pickedCommands = {};
-                    const fightersWithCommands = Object.keys(commands);
-                    fightersWithCommands.forEach(fighterId => {
-                        let totalWeight = 0;
-                        commands[fighterId].forEach(command => {
-                            totalWeight += command.weight;
-                        });
-                        const pickedWeight = Math.random() * totalWeight;
-                        totalWeight = 0;
-                        const commandInd = commands[fighterId].findIndex(command => {
-                            totalWeight += command.weight;
-                            return totalWeight >= pickedWeight;
-                        });
-                        console.assert(commandInd >= 0, 'A command was not found');
-                        pickedCommands[fighterId] = commands[fighterId][commandInd];
-                    });
-                    console.debug('Picked commands :', pickedCommands);
-
                     // Sort in order of actions
-                    let fightersInOrder = fightersWithCommands.toSpliced(); // copy
+                    let fightersInOrder = fightersOnMapIds.toSpliced(); // copy
                     ShuffleInPlace(fightersInOrder);
                     let fighterOrderTxt = '';
                     for (let i = 0; i < fightersInOrder.length; i++) {
                         const fighterId = fightersInOrder[i];
-                        const fighter = fighterHolder.allFighters[fighterId];
-                        fighterOrderTxt += ` ${fighter.icon} ${fighter.name}`
+                        fighterOrderTxt += ` ${barrack.GetFighterFullName(fighterId)}`
                         if (i < fightersInOrder.length - 1)
-                            fighterOrderTxt += ' < '
+                            fighterOrderTxt += ' > '
                     }
                     await channel.send({ content: `Ordre d'actions : ${fighterOrderTxt}` })
 
-                    // Execute actions in order
                     const eventStack = [];
-                    for (let i = 0; i < fightersInOrder.length; i++) {
-                        const fighterId = fightersInOrder[fightersInOrder.length - 1 - i];
-                        const command = pickedCommands[fighterId];
-                        eventStack.push(command.resultingEvent);
+
+                    // Tell beginning of combat or turn
+                    if (justStarted) {
+                        console.log('Beginning of combat event');
+                        const beginningOfCombatEvent = {
+                            type: 'beginningOfCombat'
+                        };
+                        eventStack.push(beginningOfCombatEvent);
+                        await ResolveEventStack(eventStack, fightersOnMapIds, channel);
                     }
 
-                    // Process all events
-                    let failSafe = 1000;
-                    while (eventStack.length > 0 && failSafe > 0) {
-                        failSafe--;
-                        const event = eventStack.pop();
+                    console.log("Beginning of turn event");
+                    const beginningOfTurnEvent = {
+                        type: 'beginningOfTurn'
+                    }
+                    eventStack.push(beginningOfTurnEvent);
+                    await ResolveEventStack(eventStack, fightersOnMapIds, channel);
 
-                        // const author = fighterHolder.allFighters[event.author];
-                        // if (author.isOutOfCombat)
-                        //     continue; // Should dying fizzle events emitted by dead ??
+                    // Find and execute fighters actions
+                    for (let i = 0; i < fightersInOrder.length; i++) {
 
-                        if (!event.hasOwnProperty('timing'))
-                            event.timing = 'before';
-                        const fighter = fighterHolder.allFighters[event.target];
-                        fighter.modifierIds.forEach(modId => {
-                            const mod = modifierManager.GetModifier(modId);
-                            mod.ProcessEvent(barrack, event.target, arena, event);
-                        });
-                        let consequences = []
-                        if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
-                            consequences = structuredClone(event.consequences);
+                        const fighterId = fightersInOrder[i];
+                        const fighter = fighterHolder.allFighters[fighterId];
 
-                        if (event.timing !== 'after') {
-                            if (event.timing === 'before')
-                                event.timing = 'during';
-                            else if (event.timing === 'during')
-                                event.timing = 'after';
-                            event.consequences = [];
-                            eventStack.push(event);
+                        await channel.send({ content: `> Tour de ${barrack.GetFighterFullName(fighterId)}` });
+
+                        if (fighter.isOutOfCombat)
+                            continue;
+
+                        {
+                            const currentTime = new Date();
+                            console.log(`[${currentTime.toLocaleString('fr-FR')}]:' ${fighter.name}'s turn`);
                         }
 
-                        consequences.forEach(consequence => {
-                            eventStack.push(consequence);
+                        // Gather what info they want
+                        console.log('Gather wanted info');
+                        let info = {};
+                        fighter.modifierIds.forEach(modId => {
+                            modifierManager.GetModifier(modId).GatherWantedInfo(info);
                         });
-                    }
-                    console.assert(failSafe > 0, 'Infinite loop or too many events');
+                        console.debug('Wanted info:', info);
 
-                    // End state visualisation
-                    console.debug('[DEBUG]', arena.GetMap());
-                    await channel.send({ content: `Après actions :\n${arena.GetMapVisualisation()}` });
+                        // Gather the info wanted
+                        console.log('Gather actual info');
+                        fighter.modifierIds.forEach(modId => {
+                            modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arena, info);
+                        });
+                        console.debug('Gathered info:', info);
+
+                        // Get the commands and instructions
+                        console.log('Get the commands and instructions');
+                        let commands = [];
+                        let instructions = [];
+                        fighter.modifierIds.forEach(modId => {
+                            const mod = modifierManager.GetModifier(modId);
+                            if (mod.type === "action") {
+                                let command = mod.GetCommand(barrack, fighterId, arena, info);
+                                console.assert(command.hasOwnProperty("type"), `Command does not have a type`);
+                                if (command.type === "actionCommand") {
+                                    commands.push(command);
+                                } else {
+                                    console.assert(command.type === "instruction", `Command type \'${command.type}\' is not supported`);
+                                    instructions.push(command);
+                                }
+                            }
+                        });
+                        console.debug('Commands after adding actions :', commands);
+                        console.debug('Instructions :', instructions);
+
+                        // Get the move commands based on the instructions
+                        console.log('Get move commands');
+                        instructions.forEach(instruction => {
+                            const totalWeightToShare = instruction.weight;
+                            const firstNewInstructionInd = commands.length;
+                            fighter.modifierIds.forEach(modId => {
+                                if (modifierManager.GetModifier(modId).type === "move") {
+                                    let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arena, info, instruction);
+                                    if (moveCommand !== undefined)
+                                        commands.push(moveCommand);
+                                }
+                            });
+                            const commandsAdded = commands.length - firstNewInstructionInd;
+                            if (commandsAdded > 0) {
+                                const newCommandWeight = totalWeightToShare / commandsAdded;
+                                for (let i = firstNewInstructionInd; i < commands.length; i++) {
+                                    commands[i].weight = newCommandWeight;
+                                }
+                            }
+
+                        });
+                        // console.debug('Commands after adding moves :', commands);
+
+                        // select one command  
+                        console.log('Select one command');
+                        let totalWeight = 0;
+                        commands.forEach(command => {
+                            totalWeight += command.weight;
+                        });
+                        const pickedWeight = Math.random() * totalWeight;
+                        totalWeight = 0;
+                        const commandInd = commands.findIndex(command => {
+                            totalWeight += command.weight;
+                            return totalWeight >= pickedWeight;
+                        });
+                        console.assert(commandInd >= 0, 'A command was not found');
+                        const pickedCommand = commands[commandInd];
+                        console.debug('Picked command :', pickedCommand);
+
+                        eventStack.push(pickedCommand.resultingEvent);
+
+                        // Process all events
+                        await ResolveEventStack(eventStack, fightersOnMapIds, channel);
+
+                        // End state visualisation
+                        console.debug('[DEBUG] map ', arena.GetMap());
+                        await channel.send({ content: `Après action de ${barrack.GetFighterFullName(fighterId)} :\n${arena.GetMapVisualisation()}` });
+                    }
                 }
 
                 barrack.SaveFighters();
@@ -313,3 +297,74 @@ module.exports = {
         });
     }
 };
+
+async function ResolveEventStack(eventStack, fightersOnMapIds, channel) {
+
+    const barrack = require('../../source/barracks.js');
+    const arena = require('../../source/arena.js');
+    const modifierManager = require('../../source/modifierManager.js');
+    const eventTextConstructor = require('../../source/eventTextConstructor.js');
+
+    const fighterHolder = barrack.GetFighterHolder();
+
+    console.log('Process', eventStack.length, 'events');
+    let failSafe = 1000;
+    while (eventStack.length > 0 && failSafe > 0) {
+        failSafe--;
+        const event = eventStack.pop();
+
+        if (!event.hasOwnProperty('timing'))
+            event.timing = 'before';
+
+        console.log('Process event', event);
+
+        // first the target if any
+        if (event.hasOwnProperty('target')) {
+            const fighter = fighterHolder.allFighters[event.target];
+            fighter.modifierIds.forEach(modId => {
+                const mod = modifierManager.GetModifier(modId);
+                mod.ProcessEvent(barrack, event.target, arena, event);
+            });
+        }
+
+        // then all the others
+        fightersOnMapIds.forEach(otherFighterId => {
+            if (!event.hasOwnProperty('target') || otherFighterId != event.target) {
+                const otherFighter = fighterHolder.allFighters[otherFighterId];
+                otherFighter.modifierIds.forEach(modId => {
+                    const mod = modifierManager.GetModifier(modId);
+                    mod.ProcessEvent(barrack, otherFighterId, arena, event);
+                });
+            }
+
+        });
+
+        if (event.timing === 'during') {
+            const text = eventTextConstructor.GetEventText(event);
+            if (text && text.length > 0) {
+                console.log(text);
+                await channel.send({ content: text });
+            }
+        }
+
+        let consequences = []
+        if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
+            consequences = structuredClone(event.consequences);
+
+        if (event.timing !== 'after') {
+            if (event.timing === 'before')
+                event.timing = 'during';
+            else if (event.timing === 'during')
+                event.timing = 'after';
+            event.consequences = [];
+            eventStack.push(event);
+        }
+
+        consequences.forEach(consequence => {
+            eventStack.push(consequence);
+        });
+    }
+    console.assert(failSafe > 0, 'Infinite loop or too many events');
+    console.assert(eventStack.length === 0, 'Not all events were processed');
+
+}

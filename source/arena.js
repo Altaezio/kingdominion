@@ -137,7 +137,10 @@ module.exports = {
                 const positionStr = `${x};${y}`;
                 if (map.map.hasOwnProperty(positionStr)) {
                     const fighter = barrack.GetFighterById(map.map[positionStr][0]);
-                    visu = visu.concat(fighter.icon);
+                    if (fighter.outOfCombat)
+                        visu = visu.concat('☠️');
+                    else
+                        visu = visu.concat(fighter.icon);
                 }
                 else {
                     visu = visu.concat(emptyTile);

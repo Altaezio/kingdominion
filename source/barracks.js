@@ -86,5 +86,12 @@ module.exports = {
         const fighter = fighterHolder.allFighters[fighterId]
         console.assert(fighter !== undefined, `Fighter ${name} not loaded`);
         return fighter;
+    },
+
+    GetFighterFullName(id) {
+        const fighter = this.GetFighterById(id);
+        if (fighter !== undefined) {
+            return `${fighter.icon} ${fighter.name}`;
+        }
     }
 }

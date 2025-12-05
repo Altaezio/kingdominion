@@ -29,24 +29,27 @@ module.exports = {
             event.target === fighterId &&
             event.timing === 'during'
         ) {
-            const receiveDamage = {
-                modifierId: this.id,
-                type: 'receiveDamage',
-                target: event.finalTarget,
-                author: fighterId,
-                amount: DAMAGE,
-                dist: REACH,
-                isMissed: event.isMissed
-            };
-            event.consequences.push(receiveDamage);
+            const fighter = barrack.GetFighterHolder().allFighters[fighterId];
+            if (!fighter.outOfCombat) {
+                const receiveDamage = {
+                    modifierId: this.id,
+                    type: 'receiveDamage',
+                    target: event.finalTarget,
+                    author: event.author,
+                    amount: event.amount,
+                    dist: event.dist,
+                    isMissed: event.isMissed
+                };
+                event.consequences.push(receiveDamage);
+            }
         }
     },
 
     GetCommand(barrack, fighterId, map, info) {
         if (info.hasOwnProperty('closestEnemies') &&
             info.closestEnemies.length > 0 &&
-            info.closestEnemies[0].dist <= REACH) {
-            // ATAK
+            info.closestEnemies[0].dist <= REACH
+        ) { // ATAK
             const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
             const resultingEvent = {
                 modifierId: this.id,
