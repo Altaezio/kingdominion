@@ -13,7 +13,7 @@ module.exports = {
         )
         .addBooleanOption(option =>
             option.setName('in-combat')
-                .setDescription('Si tu veux ses informations en direct pendant le combat')
+                .setDescription('Si tu veux ses informations en direct pendant le combat (default True)')
         ),
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -30,7 +30,7 @@ module.exports = {
             return;
         }
 
-        let combatInfo = interaction.options.getBoolean('combat-info') ?? false;
+        let combatInfo = interaction.options.getBoolean('in-combat') ?? true;
 
         const arena = arenaManager.GetArena();
         if (combatInfo && !arena) {

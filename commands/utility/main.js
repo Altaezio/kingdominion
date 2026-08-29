@@ -21,12 +21,12 @@ module.exports = {
         // });
 
         // test, launching once :
-        await this.StartCombat(channel);
+        await this.RunCombat(channel);
 
         // TODO start job every week-end to gather votes
     },
 
-    async StartCombat(channel) {
+    async RunCombat(channel) {
         const barrack = require('../../source/barracks.js');
         const arenaManager = require('../../source/arenaManager.js');
         const modifierManager = require('../../source/modifierManager.js');
@@ -81,6 +81,7 @@ module.exports = {
             }
         }
 
+        arena = arenaManager.GetArena();
         let failSafe = 1000;
         while (arena.state !== 'finished' && failSafe > 0) {
             if (arena.paused) {

@@ -1,6 +1,6 @@
 const DAMAGE = 5;
 const REACH = 1;
-const CHANCE_TO_CONNECT = 0.5;
+const CHANCE_TO_CONNECT = 0.75;
 
 module.exports = {
     id: 'simpleAttack',

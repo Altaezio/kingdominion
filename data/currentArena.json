@@ -1,25 +1,31 @@
 {
     "state": "battling",
     "turn": {
-        "number": 0,
+        "number": 3,
         "turnOrder": [],
-        "currentTurnTakerInd": 0
+        "currentTurnTakerInd": 0,
+        "fightersOnMapIds": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ]
     },
-    "paused": false,
+    "paused": true,
     "width": 5,
     "height": 5,
     "map": {
         "3;1": [
             0
         ],
-        "4;3": [
-            1
-        ],
         "2;2": [
             2
         ],
         "3;2": [
             3
+        ],
+        "4;2": [
+            "1"
         ]
     },
     "fighterData": {
@@ -71,14 +77,49 @@
             ],
             "modifierData": {
                 "health": {
-                    "currentHealth": 10
+                    "currentHealth": 5
                 }
             }
         }
     },
     "log": [
         "[29/08/2026 9:22:19]: Que les jeux commencent !",
-        "[29/08/2026 9:22:20]: Départ :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n"
+        "[29/08/2026 9:22:20]: Départ :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:41:12]: # --- **Début du combat** ---",
+        "[29/08/2026 9:41:13]: ## --- Tour **1** ---",
+        "[29/08/2026 9:41:13]: Ordre d'actions :  🦐 Dragon >  👨 Donkey >  🫏 Shrek >  🦤 Fiona",
+        "[29/08/2026 9:41:14]: Beginning of turn event",
+        "[29/08/2026 9:41:14]: > Action de 🦐 Dragon",
+        "[29/08/2026 9:41:14]: 🦐 Dragon rate son attaque sur 🫏 Shrek",
+        "[29/08/2026 9:41:15]: Après action de 🦐 Dragon :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:41:46]: > Action de 👨 Donkey",
+        "[29/08/2026 9:41:47]: 👨 Donkey rate son attaque sur 🦐 Dragon",
+        "[29/08/2026 9:41:48]: Après action de 👨 Donkey :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:42:26]: > Action de 🫏 Shrek",
+        "[29/08/2026 9:42:27]: 🫏 Shrek rate son attaque sur 🦐 Dragon",
+        "[29/08/2026 9:42:28]: Après action de 🫏 Shrek :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:42:59]: > Action de 🦤 Fiona",
+        "[29/08/2026 9:43:03]: 🦤 Fiona se déplace de 1 vers south pour atteindre 🦐 Dragon",
+        "[29/08/2026 9:43:04]: Après action de 🦤 Fiona :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:43:34]: Fighters alive : 0,1,2,3",
+        "[29/08/2026 9:44:04]: ## --- Tour **2** ---",
+        "[29/08/2026 9:44:05]: Ordre d'actions :  👨 Donkey >  🦤 Fiona >  🦐 Dragon >  🫏 Shrek",
+        "[29/08/2026 9:44:06]: Beginning of turn event",
+        "[29/08/2026 9:44:06]: > Action de 👨 Donkey",
+        "[29/08/2026 9:44:07]: 👨 Donkey rate son attaque sur 🦐 Dragon",
+        "[29/08/2026 9:44:07]: Après action de 👨 Donkey :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:44:38]: > Action de 🦤 Fiona",
+        "[29/08/2026 9:44:41]: 🦤 Fiona rate son attaque sur 🦐 Dragon",
+        "[29/08/2026 9:44:42]: Après action de 🦤 Fiona :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:45:13]: > Action de 🦐 Dragon",
+        "[29/08/2026 9:45:14]: 🦐 Dragon rate son attaque sur 🫏 Shrek",
+        "[29/08/2026 9:45:15]: Après action de 🦐 Dragon :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:45:46]: > Action de 🫏 Shrek",
+        "[29/08/2026 9:45:47]: 🫏 Shrek attaque 🦐 Dragon pour infliger 5 dégâts",
+        "[29/08/2026 9:45:48]: 🦐 Dragon se prend 5 dégâts par 🫏 Shrek",
+        "[29/08/2026 9:45:49]: 🦐 Dragon a perdu 5 PV et n'en a plus que 5",
+        "[29/08/2026 9:45:49]: Après action de 🫏 Shrek :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[29/08/2026 9:46:21]: Fighters alive : 0,1,2,3"
     ],
-    "date": "29/08/2026 9:39:51"
+    "date": "29/08/2026 9:46:23"
 }
