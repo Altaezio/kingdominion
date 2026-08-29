@@ -13,12 +13,12 @@ module.exports = {
     GatherWantedInfo(info) {
     },
 
-    GatherInfo(barrack, fighterId, arena, info) {
-        let fighter = barrack.GetFighterById(fighterId);
+    GatherInfo(barrack, fighterId, arenaManager, info) {
+        let fighterData = arenaManager.GetArena().fighterData[fighterId];
         if (info.hasOwnProperty('currentHealth')) {
-            console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
-            console.assert(fighter.modifierData[this.id].hasOwnProperty('currentHealth'), `Fighter ${fighter.id} does not have health currentHealth`);
-            info.currentHealth = fighter.modifierData[this.id].currentHealth;
+            console.assert(fighterData.modifierData.hasOwnProperty(this.id), `Fighter ${fighterId} does not have health`);
+            console.assert(fighterData.modifierData[this.id].hasOwnProperty('currentHealth'), `Fighter ${fighterId} does not have health currentHealth`);
+            info.currentHealth = fighterData.modifierData[this.id].currentHealth;
         }
         if (info.hasOwnProperty('maxHealth')) {
             // console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
@@ -27,7 +27,7 @@ module.exports = {
         }
     },
 
-    ProcessEvent(barrack, fighterId, arena, event) {
+    ProcessEvent(barrack, fighterId, arenaManager, event) {
         if (event.type === 'receiveDamage' &&
             event.target === fighterId &&
             event.timing === 'during'
@@ -38,13 +38,16 @@ module.exports = {
                 doTakeDamage = !event.isMissed;
 
             if (doTakeDamage) {
-                const fighter = barrack.GetFighterById(fighterId);
-                console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
-                // console.assert(fighter.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
-                fighter.modifierData[this.id].currentHealth -= event.amount;
+                const arena = arenaManager.GetArena();
+                console.assert(arena.fighterData.hasOwnProperty(fighterId), `Fighter ${fighterId} does not have mod data`);
+                const fighterData = arena.fighterData[fighterId];
+                console.log(fighterData);
+                console.assert(fighterData.modifierData.hasOwnProperty(this.id), `Fighter ${fighterId} does not have health`);
+                // console.assert(fighterData.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
+                fighterData.modifierData[this.id].currentHealth -= event.amount;
                 // event.log.push(`Le combatant ${fighter.name} a perdu ${event.amount} points de vie`);
 
-                if (fighter.modifierData[this.id].currentHealth <= 0) {
+                if (fighterData.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {
                         modifierId: this.id,
                         type: 'outOfCombat',
@@ -54,14 +57,23 @@ module.exports = {
                     };
                     event.consequences.push(lostEvent);
                 }
+
+                const healthLoss = {
+                    modifierId: this.id,
+                    type: 'healthLoss',
+                    target: fighterId,
+                    author: fighterId,
+                    amount: event.amount,
+                };
+                event.consequences.push(healthLoss);
             }
         }
         else if (event.type === 'outOfCombat' &&
             event.timing === 'during' &&
             event.target === fighterId
         ) {
-            let fighter = barrack.GetFighterById(fighterId);
-            fighter.isOutOfCombat = true;
+            arenaManager.GetArena().fighterData[fighterId].isOutOfCombat = true;
+            // arenaManager.RemoveObject(fighterId);
         }
     }
 }

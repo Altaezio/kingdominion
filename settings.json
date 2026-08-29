@@ -1,4 +1,7 @@
 {
-    "channelId": "1176125758016593920",
+    "testChannelId": "1176125758016593920",
+    "reportChannelId": "1495680363052273757",
+    "commandChannelId": "1495679780446535771",
+    "detailedLogsChannelId": "1495679870095724564",
     "emptyTile": "⬛"
 }

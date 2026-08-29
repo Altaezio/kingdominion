@@ -6,6 +6,7 @@ module.exports = {
         .setName('fighter-list')
         .setDescription('Donne la liste de tous les combattants'),
     async execute(interaction) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const userHandler = require(`../../source/userHandler.js`);
         const barracks = require(`../../source/barracks.js`);
         const modifierManager = require(`../../source/modifierManager.js`);
@@ -15,9 +16,13 @@ module.exports = {
         const fighterIds = Object.keys(fighterHolder.allFighters);
         fighterIds.forEach((id) => {
             const fighter = barracks.GetFighterById(id);
-            const user = userHandler.GetLocalUserByLocalId(fighter.userLocalId);
-            fighterListText = fighterListText.concat(`\n - ${fighter.icon} Nom : ${fighter.name}, Joueur : ${user.name}`);
+            if (fighter) {
+                const user = userHandler.GetLocalUserByLocalId(fighter.userLocalId);
+                if (user) {
+                    fighterListText = fighterListText.concat(`\n - ${fighter.icon} Nom: **${fighter.name}**, Joueur: **${user.name}**`);
+                }
+            }
         });
-        await interaction.reply({ content: fighterListText });
+        await interaction.editReply({ content: fighterListText });
     },
 };

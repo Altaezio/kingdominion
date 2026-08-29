@@ -26,3 +26,13 @@ Your bot should be online and ready to receive commands and take actions
 If you made a change or added a new command, you can use the command `/reload [nameOdTheCommandToReload]`.  
 Careful, this command is currently setup as public and anyone can use it.  
 You might want it to be deployed as a guild command in a private guild.
+
+# TODOs:
+-[x] have access to current fight data
+-[] have daily combat with a pause in the week-end
+-[] have combat statistics (win / death / kills etc)
+-[] have the week-end pause be a (fake) surveil (gathering modifier ideas ?)
+
+## Later
+-[] Implement new modifiers
+-[] Surveil giving new modifiers

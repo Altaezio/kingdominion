@@ -13,20 +13,17 @@ module.exports = {
             "userLocalId": userLocalId,
             "baseModifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
             "baseModifierData": {},
-            "modifierIds": [],
-            "modifierData": {},
             "currentTeamId": 0,
-            "isOutOfCombat": true,
         };
         fighterHolder.allFighters[newFighter.id] = newFighter;
         fighterHolder.nextId++;
 
         const modifierManager = require(`./modifierManager.js`);
         const modifiers = modifierManager.GetModifiers();
-        newFighter.modifierIds.forEach(modId => {
+        newFighter.baseModifierIds.forEach(modId => {
             const mod = modifiers[modId];
             if (mod.hasOwnProperty('defaultData'))
-                newFighter.modifierData[modId] = mod.defaultData;
+                newFighter.baseModifierData[modId] = mod.defaultData;
         });
 
         const data = JSON.stringify(fighterHolder, null, 4);
@@ -88,8 +85,11 @@ module.exports = {
         return fighter;
     },
 
-    GetFighterFullName(id) {
-        const fighter = this.GetFighterById(id);
+    GetFighterFullNameById(id) {
+        return this.GetFighterFullName(this.GetFighterById(id));
+    },
+
+    GetFighterFullName(fighter) {
         if (fighter !== undefined) {
             return `${fighter.icon} ${fighter.name}`;
         }

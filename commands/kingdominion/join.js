@@ -20,7 +20,7 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction) {
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const userHandler = require(`../../source/userHandler.js`);
         const barracks = require(`../../source/barracks.js`);
         const fighterName = interaction.options.getString('name').trim();
@@ -28,16 +28,16 @@ module.exports = {
         const emotes = iconOption.match(/\p{Extended_Pictographic}/gu);
         if (!emotes || emotes.length <= 0) {
             console.debug("not possible emoji :", emotes, "from :", iconOption);
-            await interaction.editReply({ content: `Tu dois mettre un emoji comme icon : ${iconOption} n'est pas possible`, flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: `Tu dois mettre un emoji comme icon : ${iconOption} n'est pas possible` });
             return;
         }
         const icon = emotes[0];
 
         if (barracks.NameIsTaken(fighterName)) {
-            await interaction.editReply({ content: `Nom déjà utilisé, essaye encore`, flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: `Nom déjà utilisé, essaye encore` });
             return;
         }
-        const user = userHandler.GetLocalUserByAccountId(interaction.user.id);
+        const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
         const newFighter = barracks.CreateFighter(fighterName, icon, user.id);
         await interaction.editReply({ content: `Tu as un nouveau combattant: ${newFighter.icon} ${newFighter.name}` });
     },

@@ -5,22 +5,22 @@ module.exports = {
         return JSON.parse(fs.readFileSync(`./config.json`, 'utf8'));
     },
 
-    GetLocalUserByAccountId(userId) {
+    GetLocalUserByDiscordUser(user) {
         const config = this.GetConfig();
-        if (!config.users.hasOwnProperty(userId)) {
-            config.users[userId] = {
+        if (!config.users.hasOwnProperty(user.id)) {
+            config.users[user.id] = {
                 'id': config.nextUserNumber,
-                'name': 'user' + config.nextUserNumber
+                'name': user.globalName
             };
             config.nextUserNumber++;
             const data = JSON.stringify(config, null, 4);
             fs.writeFileSync(`./config.json`, data);
             {
                 const currentTime = new Date();
-                console.log('[' + currentTime.toLocaleString('fr-FR') + `]: New user created ${userId} to ${config.users[userId]}`);
+                console.log('[' + currentTime.toLocaleString('fr-FR') + `]: New user created ${user.id} to ${config.users[user.id]}`);
             }
         }
-        return config.users[userId];
+        return config.users[user.id];
     },
 
     GetLocalUserByLocalName(userName) {

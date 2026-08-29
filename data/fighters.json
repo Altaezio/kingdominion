@@ -6,18 +6,7 @@
             "name": "Shrek",
             "icon": "🫏",
             "userLocalId": 0,
-            "modifierIds": [
-                "health",
-                "simpleAttack",
-                "simpleCrossMove"
-            ],
-            "modifierData": {
-                "health": {
-                    "currentHealth": 5
-                }
-            },
             "currentTeamId": 0,
-            "isOutOfCombat": false,
             "baseModifierIds": [
                 "health",
                 "simpleAttack",
@@ -35,18 +24,7 @@
             "name": "Fiona",
             "icon": "🦤",
             "userLocalId": 0,
-            "modifierIds": [
-                "health",
-                "simpleAttack",
-                "simpleCrossMove"
-            ],
-            "modifierData": {
-                "health": {
-                    "currentHealth": 0
-                }
-            },
             "currentTeamId": 1,
-            "isOutOfCombat": true,
             "baseModifierIds": [
                 "health",
                 "simpleAttack",
@@ -57,7 +35,43 @@
                     "currentHealth": 10
                 }
             }
+        },
+        "2": {
+            "id": 2,
+            "type": "fighter",
+            "name": "Donkey",
+            "icon": "👨",
+            "userLocalId": 0,
+            "baseModifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "baseModifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            },
+            "currentTeamId": 2
+        },
+        "3": {
+            "id": 3,
+            "type": "fighter",
+            "name": "Dragon",
+            "icon": "🦐",
+            "userLocalId": 0,
+            "baseModifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "baseModifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            },
+            "currentTeamId": 3
         }
     },
-    "nextId": 2
+    "nextId": 4
 }

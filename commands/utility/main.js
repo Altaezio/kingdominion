@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { channelId } = require('../../settings.json');
-const { ShuffleInPlace } = require('../../utils.js');
+const { testChannelId } = require('../../settings.json');
+const { sleep, ShuffleInPlace } = require('../../utils.js');
 
 module.exports = {
     category: 'utility',
@@ -10,47 +10,105 @@ module.exports = {
         .setName('run')
         .setDescription('Commence les jeux !'),
     async execute(interaction) {
-        const alreadyRunning = schedule.scheduledJobs.hasOwnProperty('runningGame');
-        if (alreadyRunning) {
-            await interaction.reply({ content: 'Game already running', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: 'Scheduling game', flags: MessageFlags.Ephemeral });
+
+        const channel = interaction.client.channels.cache.get(testChannelId);
+
+        // one job = one combat, only from Monday to Friday starting at 8am
+        // production 
+        // const job = schedule.scheduleJob('runningGame', '* 8 * * 1-5', async function () {
+        //     await StartCombat(channel)
+        // });
+
+        // test, launching once :
+        await this.StartCombat(channel);
+
+        // TODO start job every week-end to gather votes
+    },
+
+    async StartCombat(channel) {
+        const barrack = require('../../source/barracks.js');
+        const arenaManager = require('../../source/arenaManager.js');
+        const modifierManager = require('../../source/modifierManager.js');
+        const eventTextConstructor = require('../../source/eventTextConstructor.js');
+
+        {
+            const currentTime = new Date();
+            console.log('[' + currentTime.toLocaleString('fr-FR') + ']: Load data');
+        }
+        barrack.LoadAllFighters();
+        arenaManager.LoadArena('currentArena');
+        modifierManager.LoadModifiers();
+
+        let arena = arenaManager.GetArena();
+        if (arena.paused) {
+            arenaManager.Log('Combat déjà en pause. /pause pour le relancer ou /stop pour l\'arrêter', true, channel, MessageFlags.Ephemeral);
             return;
         }
 
-        await interaction.reply({ content: 'Scheduling game', flags: MessageFlags.Ephemeral });
-        const job = schedule.scheduleJob('runningGame', '*/10 * * * * *', async function () {
-            const channel = interaction.client.channels.cache.get(channelId);
+        const fighterHolder = barrack.GetFighterHolder();
+        const fightersIds = Object.keys(fighterHolder.allFighters);
 
-            const barrack = require('../../source/barracks.js');
-            const arena = require('../../source/arena.js');
-            const modifierManager = require('../../source/modifierManager.js');
-            const eventTextConstructor = require('../../source/eventTextConstructor.js');
-
+        if (arenaManager.GetState() === 'initialisation') {
             try {
-                {
-                    const currentTime = new Date();
-                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: Load data');
-                }
-                barrack.LoadAllFighters();
-                arena.LoadMap("currentMap");
-                modifierManager.LoadModifiers();
+                // reset map
+                arenaManager.ResetArena();
 
-                const fighterHolder = barrack.GetFighterHolder();
-                const fightersIds = Object.keys(fighterHolder.allFighters);
-
-                if (arena.GetState() === 'initialisation') {
-                    let nFighters = fightersIds.length;
-                    if (nFighters < 2) {
-                        console.log(`Not enough fighters to start (${nFighters})`);
-                        channel.send({ content: `Not enough fighters to start (${nFighters})`, flags: MessageFlags.Ephemeral });
-                        return;
-                    }
+                let nFighters = fightersIds.length;
+                if (nFighters < 2) {
+                    arenaManager.Log(`Not enough fighters to start (${nFighters})`, true, channel, MessageFlags.Ephemeral)
+                    return;
                 }
-                else {
+
+                justStarted = true;
+                await arenaManager.Log('Que les jeux commencent !', true, channel);
+
+                // give fighters positions
+                const spawnPoints = arenaManager.GetSpawnPositions(nFighters);
+                for (let i = 0; i < nFighters; i++) {
+                    const fighterId = fightersIds[i]
+                    const fighter = fighterHolder.allFighters[fighterId]
+                    arenaManager.AddFighter(fighter, spawnPoints[i]);
+                }
+                await arenaManager.Log(`Départ :\n${arenaManager.GetMapVisualisation()}`, false, channel);
+                arenaManager.SetState("battling");
+
+            }
+            catch (error) {
+                console.log('Error : ', error);
+                await channel.send(`Error while initialising game :\n\`\`\`${error}\`\`\``);
+                return;
+            }
+        }
+
+        let failSafe = 1000;
+        while (arena.state !== 'finished' && failSafe > 0) {
+            if (arena.paused) {
+                return;
+            }
+            try {
+
+                const fighterPositions = {};
+                fightersIds.forEach((id) => {
+                    const position = arenaManager.GetObjectPosition(id);
+                    fighterPositions[id] = position;
+                })
+                const fightersOnMapIds = Object.keys(fighterPositions);
+                console.debug('fighters on map', fightersOnMapIds);
+
+                if (arena.state === 'battling') {
+                    arena.turn['fightersOnMapIds'] = fightersOnMapIds;
+                    await this.NewTurn(arena.turn, channel);
+                    arena = arenaManager.GetArena();
+                }
+
+                if (arena.state === 'battling') { // can be stopped during turn
+                    // Victory test
                     let fightersPerTeam = {};
                     let fighterAlive = undefined;
                     for (let i = 0; i < fightersIds.length; i++) {
                         const fighter = fighterHolder.allFighters[fightersIds[i]];
-                        if (fighter.isOutOfCombat) {
+                        if (arena.fighterData[fighter.id].isOutOfCombat) {
                             fightersIds.splice(i, 1);
                             i--;
                         }
@@ -61,310 +119,276 @@ module.exports = {
                             fightersPerTeam[fighter.currentTeamId]++;
                         }
                     }
+                    await arenaManager.Log(`Fighters alive : ${fightersIds}`, true);
                     const nTeams = Object.keys(fightersPerTeam).length;
-                    if (nTeams === 1) {
-                        // WINNER
-                        console.log(barrack.GetFighterFullName(fighterAlive.id), 'won');
-                        channel.send({ content: `Bravo à ${barrack.GetFighterFullName(fighterAlive.id)} pour sa victoire !` });
-                        arena.SetState('initialisation');
-                        arena.SaveMap('currentMap');
-                        job.cancel(); // stopping the schedule for now 
-                        return;
-                    }
-                    else if (nTeams === 0) {
-                        // EQUALITY
-                        console.log('Draw');
-                        channel.send({ content: `Bravo à personne pour cette égalité` });
-                        arena.SetState('initialisation');
-                        arena.SaveMap('currentMap');
-                        job.cancel(); // stopping the schedule for now 
-                        return;
-                    }
-                }
-
-                const nFighters = fightersIds.length;
-
-                let justStarted = false;
-                if (arena.GetState() == "initialisation") {
-                    const currentTime = new Date();
-                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: Initialisation');
-                    justStarted = true;
-                    await ({ content: 'Que les jeux commencent !' })
-                        .then((message) => {
-                            const interactionData = JSON.parse(fs.readFileSync(`./data/interactionData.json`, 'utf8'));
-                            interactionData.runCommandMessageId = message.id.toString();
-                            const data = JSON.stringify(interactionData, null, 4);
-                            fs.writeFileSync('./data/interactionData.json', data);
-                        });
-
-                    // reset map
-                    arena.GetMap().map = {};
-
-                    // give fighters positions and reset their data
-                    const spawnPoints = arena.GetSpawnPositions(nFighters);
-                    for (let i = 0; i < nFighters; i++) {
-                        const fighterId = fightersIds[i]
-                        const fighter = fighterHolder.allFighters[fighterId]
-                        arena.AddObjectsToPosition(fighterId, spawnPoints[i]);
-                        fighter.isOutOfCombat = false;
-                        fighter.modifierIds = fighter.baseModifierIds.toSpliced();
-                        fighter.modifierData = structuredClone(fighter.baseModifierData);
-                        console.debug(fighter)
-                    }
-                    console.log('Visualisation of the map');
-                    await channel.send({ content: `Départ :\n${arena.GetMapVisualisation()}` });
-                    arena.SetState("battling");
-                }
-                else {
-                    const currentTime = new Date();
-                    console.log('[' + currentTime.toLocaleString('fr-FR') + ']: New turn');
-                }
-
-                const fighterPositions = {};
-                fightersIds.forEach((id) => {
-                    const position = arena.GetObjectPosition(id);
-                    fighterPositions[id] = position;
-                })
-                const fightersOnMapIds = Object.keys(fighterPositions);
-                console.debug('fighters on map', fightersOnMapIds);
-
-                if (arena.GetState() == "battling") {
-                    if (justStarted) {
-                        const text = '--- Premier tour ---';
-                        console.log(text);
-                        await channel.send({ content: text });
-                    }
-                    else {
-                        const text = '--- Nouveau tour ---';
-                        console.log(text);
-                        await channel.send({ content: text }); // TODO count turns
-                    }
-
-                    // Sort in order of actions
-                    let fightersInOrder = fightersOnMapIds.toSpliced(); // copy
-                    ShuffleInPlace(fightersInOrder);
-                    let fighterOrderTxt = '';
-                    for (let i = 0; i < fightersInOrder.length; i++) {
-                        const fighterId = fightersInOrder[i];
-                        fighterOrderTxt += ` ${barrack.GetFighterFullName(fighterId)}`
-                        if (i < fightersInOrder.length - 1)
-                            fighterOrderTxt += ' > '
-                    }
-                    await channel.send({ content: `Ordre d'actions : ${fighterOrderTxt}` })
-
-                    const eventStack = [];
-
-                    // Tell beginning of combat or turn
-                    if (justStarted) {
-                        console.log('Beginning of combat event');
-                        const beginningOfCombatEvent = {
-                            type: 'beginningOfCombat'
-                        };
-                        eventStack.push(beginningOfCombatEvent);
-                        await ResolveEventStack(eventStack, fightersOnMapIds, channel);
-                    }
-
-                    console.log("Beginning of turn event");
-                    const beginningOfTurnEvent = {
-                        type: 'beginningOfTurn'
-                    }
-                    eventStack.push(beginningOfTurnEvent);
-                    await ResolveEventStack(eventStack, fightersOnMapIds, channel);
-
-                    // Find and execute fighters actions
-                    for (let i = 0; i < fightersInOrder.length; i++) {
-
-                        const fighterId = fightersInOrder[i];
-                        const fighter = fighterHolder.allFighters[fighterId];
-
-                        await channel.send({ content: `> Tour de ${barrack.GetFighterFullName(fighterId)}` });
-
-                        if (fighter.isOutOfCombat)
-                            continue;
-
-                        {
-                            const currentTime = new Date();
-                            console.log(`[${currentTime.toLocaleString('fr-FR')}]:' ${fighter.name}'s turn`);
+                    if (nTeams < 2) {
+                        let msg;
+                        if (nTeams === 1) {
+                            // WINNER
+                            if (fightersPerTeam[0] == 1) {
+                                msg = `👑 Bravo à ${barrack.GetFighterFullName(fighterAlive)} pour sa victoire ! 👑`;
+                            }
+                            else {
+                                msg = `👑 Bravo à l'équipe de ${barrack.GetFighterFullName(fighterAlive)} pour sa victoire ! 👑`;
+                            }
                         }
-
-                        // Gather what info they want
-                        console.log('Gather wanted info');
-                        let info = {};
-                        fighter.modifierIds.forEach(modId => {
-                            modifierManager.GetModifier(modId).GatherWantedInfo(info);
-                        });
-                        console.debug('Wanted info:', info);
-
-                        // Gather the info wanted
-                        console.log('Gather actual info');
-                        fighter.modifierIds.forEach(modId => {
-                            modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arena, info);
-                        });
-                        console.debug('Gathered info:', info);
-
-                        // Get the commands and instructions
-                        console.log('Get the commands and instructions');
-                        let commands = [];
-                        let instructions = [];
-                        fighter.modifierIds.forEach(modId => {
-                            const mod = modifierManager.GetModifier(modId);
-                            if (mod.type === "action") {
-                                let command = mod.GetCommand(barrack, fighterId, arena, info);
-                                console.assert(command.hasOwnProperty("type"), `Command does not have a type`);
-                                if (command.type === "actionCommand") {
-                                    commands.push(command);
-                                } else {
-                                    console.assert(command.type === "instruction", `Command type \'${command.type}\' is not supported`);
-                                    instructions.push(command);
-                                }
-                            }
-                        });
-                        console.debug('Commands after adding actions :', commands);
-                        console.debug('Instructions :', instructions);
-
-                        // Get the move commands based on the instructions
-                        console.log('Get move commands');
-                        instructions.forEach(instruction => {
-                            const totalWeightToShare = instruction.weight;
-                            const firstNewInstructionInd = commands.length;
-                            fighter.modifierIds.forEach(modId => {
-                                if (modifierManager.GetModifier(modId).type === "move") {
-                                    let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arena, info, instruction);
-                                    if (moveCommand !== undefined)
-                                        commands.push(moveCommand);
-                                }
-                            });
-                            const commandsAdded = commands.length - firstNewInstructionInd;
-                            if (commandsAdded > 0) {
-                                const newCommandWeight = totalWeightToShare / commandsAdded;
-                                for (let i = firstNewInstructionInd; i < commands.length; i++) {
-                                    commands[i].weight = newCommandWeight;
-                                }
-                            }
-
-                        });
-                        // console.debug('Commands after adding moves :', commands);
-
-                        // select one command  
-                        console.log('Select one command');
-                        let totalWeight = 0;
-                        commands.forEach(command => {
-                            totalWeight += command.weight;
-                        });
-                        const pickedWeight = Math.random() * totalWeight;
-                        totalWeight = 0;
-                        const commandInd = commands.findIndex(command => {
-                            totalWeight += command.weight;
-                            return totalWeight >= pickedWeight;
-                        });
-                        console.assert(commandInd >= 0, 'A command was not found');
-                        const pickedCommand = commands[commandInd];
-                        console.debug('Picked command :', pickedCommand);
-
-                        eventStack.push(pickedCommand.resultingEvent);
-
-                        // Process all events
-                        await ResolveEventStack(eventStack, fightersOnMapIds, channel);
-
-                        // End state visualisation
-                        console.debug('[DEBUG] map ', arena.GetMap());
-                        await channel.send({ content: `Après action de ${barrack.GetFighterFullName(fighterId)} :\n${arena.GetMapVisualisation()}` });
+                        else if (nTeams === 0) {
+                            // EQUALITY
+                            msg = `Bravo à personne pour cette égalité`;
+                        }
+                        await arenaManager.Log(msg, true, channel);
+                        arenaManager.SetState('finished');
+                        const currentTime = new Date();
+                        arenaManager.SaveArena(`${currentTime.toLocaleDateString('fr-FR').replaceAll('/', '-')}_currentArena`);
+                        arenaManager.ResetArena();
+                        return;
                     }
                 }
 
                 barrack.SaveFighters();
-                arena.SaveMap('currentMap');
+                arenaManager.SaveArena('currentArena');
             }
             catch (error) {
                 console.log('Error : ', error);
-                const interactionData = JSON.parse(fs.readFileSync(`./data/interactionData.json`, 'utf8'));
-                const runCommandMessage = channel.messages.fetch(interactionData.runCommandMessageId);
-                if (typeof (runCommandMessage) === 'Message') {
-                    runCommandMessage.reply({ content: `Error while running game : ${error}`, flags: MessageFlags.Ephemeral });
-                    if (arena.GetState() == "initialisation") {
-                        job.cancel();
-                        runCommandMessage.reply({ content: "Stop job due to an error in initialisation", flags: MessageFlags.Ephemeral });
-                    }
+                await channel.send(`Error while running game :\n\`\`\`${error}\`\`\`\nPile d'évènement vidée, combat mis en pause. \`/stop\` pour arrêter ce combat`);
+                arena.paused = true;
+                try {
+                    arenaManager.SaveArena('currentArena');
                 }
-                else {
-                    await channel.send(`Error while running game : ${error}`);
-                    if (arena.GetState() == "initialisation") {
-                        job.cancel();
-                        await channel.send("Stop job due to an error in initialisation");
-                    }
+                catch (error) {
+                    await channel.send(`Error while saving after crash : \n\`\`\`${error}\`\`\`\\nProgress lost`)
                 }
+                return;
             }
-        });
-    }
-};
+            failSafe--;
+            await sleep(30); // wait 30s between turns
+            arenaManager.LoadArena('currentArena');
+        }
+        if (failSafe == 0) {
+            arena.paused = true;
+            console.error('[' + currentTime.toLocaleString('fr-FR') + `]: Too many turn loop (increase fail safe if trigger in normal conditions)`);
+            await channel.send(`Combat mis en pause: trop de boucles. \`/stop\` pour arrêter ce combat`);
+        }
+    },
 
-async function ResolveEventStack(eventStack, fightersOnMapIds, channel) {
+    async NewTurn(turnObject, channel) {
+        const barrack = require('../../source/barracks.js');
+        const arenaManager = require('../../source/arenaManager.js');
+        const modifierManager = require('../../source/modifierManager.js');
+        const eventTextConstructor = require('../../source/eventTextConstructor.js');
 
-    const barrack = require('../../source/barracks.js');
-    const arena = require('../../source/arena.js');
-    const modifierManager = require('../../source/modifierManager.js');
-    const eventTextConstructor = require('../../source/eventTextConstructor.js');
+        const fighterHolder = barrack.GetFighterHolder();
 
-    const fighterHolder = barrack.GetFighterHolder();
-
-    console.log('Process', eventStack.length, 'events');
-    let failSafe = 1000;
-    while (eventStack.length > 0 && failSafe > 0) {
-        failSafe--;
-        const event = eventStack.pop();
-
-        if (!event.hasOwnProperty('timing'))
-            event.timing = 'before';
-
-        console.log('Process event', event);
-
-        // first the target if any
-        if (event.hasOwnProperty('target')) {
-            const fighter = fighterHolder.allFighters[event.target];
-            fighter.modifierIds.forEach(modId => {
-                const mod = modifierManager.GetModifier(modId);
-                mod.ProcessEvent(barrack, event.target, arena, event);
-            });
+        if (!turnObject.hasOwnProperty('turnOrder') || turnObject.turnOrder.length == 0) {
+            // Sort in order of actions
+            console.assert(turnObject.hasOwnProperty('fightersOnMapIds'), 'turn object is missing fightersOnMapIds');
+            let fightersInOrder = turnObject.fightersOnMapIds.toSpliced(); // copy
+            ShuffleInPlace(fightersInOrder);
+            turnObject['turnOrder'] = fightersInOrder;
+        }
+        let fighterOrderTxt = '';
+        for (let i = 0; i < turnObject.turnOrder.length; i++) {
+            const fighterId = turnObject.turnOrder[i];
+            fighterOrderTxt += ` ${barrack.GetFighterFullNameById(fighterId)}`
+            if (i < turnObject.turnOrder.length - 1)
+                fighterOrderTxt += ' > '
         }
 
-        // then all the others
-        fightersOnMapIds.forEach(otherFighterId => {
-            if (!event.hasOwnProperty('target') || otherFighterId != event.target) {
-                const otherFighter = fighterHolder.allFighters[otherFighterId];
-                otherFighter.modifierIds.forEach(modId => {
+        const eventStack = [];
+
+        // Tell beginning of combat or turn
+        if (turnObject.number === 0) {
+            await arenaManager.Log(`# --- **Début du combat** ---`, true, channel);
+            const beginningOfCombatEvent = {
+                type: 'beginningOfCombat'
+            };
+            eventStack.push(beginningOfCombatEvent);
+            await this.ResolveEventStack(eventStack, turnObject.turnOrder, 0, channel);
+            turnObject.number++;
+        }
+
+        const startTurnText = `## --- Tour **${turnObject.number}** ---`;
+        await arenaManager.Log(startTurnText, true, channel);
+
+        await arenaManager.Log(`Ordre d'actions : ${fighterOrderTxt}`, true, channel)
+
+        await arenaManager.Log("Beginning of turn event", true);
+        const beginningOfTurnEvent = {
+            type: 'beginningOfTurn'
+        }
+        eventStack.push(beginningOfTurnEvent);
+        await this.ResolveEventStack(eventStack, turnObject.turnOrder, 0, channel);
+
+        const arena = arenaManager.GetArena();
+
+        // Find and execute fighters actions
+        for (let i = turnObject.currentTurnTakerInd; i < turnObject.turnOrder.length; i++) {
+            if (arena.state !== 'battling' || arena.paused) {
+                return;
+            }
+
+            const fighterId = turnObject.turnOrder[i];
+            const fighter = fighterHolder.allFighters[fighterId];
+
+            if (arena.fighterData[fighter.id].isOutOfCombat)
+                continue;
+
+            turnObject.currentTurnTakerInd = i;
+            await arenaManager.Log(`> Action de ${barrack.GetFighterFullName(fighter)}`, true, channel);
+
+            // Gather what info they want
+            console.log('Gather wanted info');
+            let info = {};
+            arena.fighterData[fighterId].modifierIds.forEach(modId => {
+                modifierManager.GetModifier(modId).GatherWantedInfo(info);
+            });
+            console.debug('Wanted info:', info);
+
+            // Gather the info wanted
+            console.log('Gather actual info');
+            arena.fighterData[fighterId].modifierIds.forEach(modId => {
+                modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arenaManager, info);
+            });
+            console.debug('Gathered info:', info);
+
+            // Get the commands and instructions
+            console.log('Get the commands and instructions');
+            let commands = [];
+            let instructions = [];
+            arena.fighterData[fighterId].modifierIds.forEach(modId => {
+                const mod = modifierManager.GetModifier(modId);
+                if (mod.type === "action") {
+                    let command = mod.GetCommand(barrack, fighterId, arenaManager, info);
+                    console.assert(command.hasOwnProperty("type"), `Command does not have a type`);
+                    if (command.type === "actionCommand") {
+                        commands.push(command);
+                    } else {
+                        console.assert(command.type === "instruction", `Command type \'${command.type}\' is not supported`);
+                        instructions.push(command);
+                    }
+                }
+            });
+            console.debug('Commands after adding actions :', commands);
+            console.debug('Instructions :', instructions);
+
+            // Get the move commands based on the instructions
+            console.log('Get move commands');
+            instructions.forEach(instruction => {
+                const totalWeightToShare = instruction.weight;
+                const firstNewInstructionInd = commands.length;
+                arena.fighterData[fighterId].modifierIds.forEach(modId => {
+                    if (modifierManager.GetModifier(modId).type === "move") {
+                        let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arenaManager, info, instruction);
+                        if (moveCommand !== undefined)
+                            commands.push(moveCommand);
+                    }
+                });
+                const commandsAdded = commands.length - firstNewInstructionInd;
+                if (commandsAdded > 0) {
+                    const newCommandWeight = totalWeightToShare / commandsAdded;
+                    for (let i = firstNewInstructionInd; i < commands.length; i++) {
+                        commands[i].weight = newCommandWeight;
+                    }
+                }
+
+            });
+            // console.debug('Commands after adding moves :', commands);
+
+            // select one command  
+            console.log('Select one command');
+            let totalWeight = 0;
+            commands.forEach(command => {
+                totalWeight += command.weight;
+            });
+            const pickedWeight = Math.random() * totalWeight;
+            totalWeight = 0;
+            const commandInd = commands.findIndex(command => {
+                totalWeight += command.weight;
+                return totalWeight >= pickedWeight;
+            });
+            console.assert(commandInd >= 0, 'A command was not found');
+            const pickedCommand = commands[commandInd];
+            console.debug('Picked command :', pickedCommand);
+
+            eventStack.push(pickedCommand.resultingEvent);
+
+            // Process all events
+            await this.ResolveEventStack(eventStack, turnObject.turnOrder, i, channel);
+
+            // End state visualisation
+            await arenaManager.Log(`Après action de ${barrack.GetFighterFullName(fighter)} :\n${arenaManager.GetMapVisualisation()}`, false, channel);
+            await sleep(30); // wait 30s between actions
+        }
+        turnObject.number++;
+        turnObject.turnOrder = [];
+        turnObject.currentTurnTakerInd = 0;
+        arena.turn = turnObject;
+    },
+
+    async ResolveEventStack(eventStack, fightersInOrder, turnTakerInd, channel) {
+
+        const barrack = require('../../source/barracks.js');
+        const arenaManager = require('../../source/arenaManager.js');
+        const modifierManager = require('../../source/modifierManager.js');
+        const eventTextConstructor = require('../../source/eventTextConstructor.js');
+
+        const fighterHolder = barrack.GetFighterHolder();
+        const arena = arenaManager.GetArena();
+
+        console.log('Process', eventStack.length, 'events');
+        let failSafe = 1000;
+        while (eventStack.length > 0 && failSafe > 0) {
+            failSafe--;
+            const event = eventStack.pop();
+
+            if (!event.hasOwnProperty('timing'))
+                event.timing = 'before';
+
+            console.log('Process event', event);
+
+            // first the target if any
+            if (event.hasOwnProperty('target')) {
+                const fighterId = event.target;
+                arena.fighterData[fighterId].modifierIds.forEach(modId => {
                     const mod = modifierManager.GetModifier(modId);
-                    mod.ProcessEvent(barrack, otherFighterId, arena, event);
+                    mod.ProcessEvent(barrack, event.target, arenaManager, event);
                 });
             }
 
-        });
+            // then all the othersi
+            for (let i = 0; i < fightersInOrder.length; i++) {
+                let otherFighterId = fightersInOrder[(turnTakerInd + i) % fightersInOrder.length];
+                if (!event.hasOwnProperty('target') || otherFighterId != event.target) {
+                    arena.fighterData[otherFighterId].modifierIds.forEach(modId => {
+                        const mod = modifierManager.GetModifier(modId);
+                        mod.ProcessEvent(barrack, otherFighterId, arenaManager, event);
+                    });
+                }
 
-        if (event.timing === 'during') {
-            const text = eventTextConstructor.GetEventText(event);
-            if (text && text.length > 0) {
-                console.log(text);
-                await channel.send({ content: text });
             }
-        }
 
-        let consequences = []
-        if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
-            consequences = structuredClone(event.consequences);
+            if (event.timing === 'during') {
+                const text = eventTextConstructor.GetEventText(event);
+                if (text && text.length > 0) {
+                    await arenaManager.Log(text, true, channel);
+                }
+            }
 
-        if (event.timing !== 'after') {
-            if (event.timing === 'before')
+            let consequences = []
+            if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
+                consequences = structuredClone(event.consequences);
+
+            if (event.timing === 'before') {
                 event.timing = 'during';
-            else if (event.timing === 'during')
-                event.timing = 'after';
-            event.consequences = [];
-            eventStack.push(event);
+                event.consequences = [];
+                eventStack.push(event);
+            }
+
+            consequences.forEach(consequence => {
+                eventStack.push(consequence);
+            });
         }
-
-        consequences.forEach(consequence => {
-            eventStack.push(consequence);
-        });
+        console.assert(failSafe > 0, 'Infinite loop or too many events');
+        console.assert(eventStack.length === 0, 'Not all events were processed');
     }
-    console.assert(failSafe > 0, 'Infinite loop or too many events');
-    console.assert(eventStack.length === 0, 'Not all events were processed');
-
-}
+};

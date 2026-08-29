@@ -1,5 +1,9 @@
 // the Fisher-Yates shuffle from https://javascript.info/task/shuffle
 module.exports = {
+    sleep(s) {
+        return new Promise(resolve => setTimeout(resolve, s * 1000));
+    },
+
     ShuffleInPlace(array) {
         for (let i = array.length - 1; i > 0; i--) {
             let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i

@@ -1,0 +1,84 @@
+{
+    "state": "battling",
+    "turn": {
+        "number": 0,
+        "turnOrder": [],
+        "currentTurnTakerInd": 0
+    },
+    "paused": false,
+    "width": 5,
+    "height": 5,
+    "map": {
+        "3;1": [
+            0
+        ],
+        "4;3": [
+            1
+        ],
+        "2;2": [
+            2
+        ],
+        "3;2": [
+            3
+        ]
+    },
+    "fighterData": {
+        "0": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "1": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "2": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "3": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        }
+    },
+    "log": [
+        "[29/08/2026 9:22:19]: Que les jeux commencent !",
+        "[29/08/2026 9:22:20]: Départ :\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛🫏⬛⬛\n⬛⬛👨🦐⬛⬛\n⬛⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n"
+    ],
+    "date": "29/08/2026 9:39:51"
+}

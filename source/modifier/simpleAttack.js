@@ -14,7 +14,7 @@ module.exports = {
         }
     },
 
-    GatherInfo(barrack, fighterId, arena, info) {
+    GatherInfo(barrack, fighterId, arenaManager, info) {
         if (info.hasOwnProperty('damage')) {
             info.damage = DAMAGE;
         }
@@ -23,7 +23,7 @@ module.exports = {
         }
     },
 
-    ProcessEvent(barrack, fighterId, map, event) {
+    ProcessEvent(barrack, fighterId, arenaManager, event) {
         if (event.type === 'sendDamage' &&
             event.author === fighterId &&
             event.target === fighterId &&
@@ -45,7 +45,7 @@ module.exports = {
         }
     },
 
-    GetCommand(barrack, fighterId, map, info) {
+    GetCommand(barrack, fighterId, arenaManager, info) {
         if (info.hasOwnProperty('closestEnemies') &&
             info.closestEnemies.length > 0 &&
             info.closestEnemies[0].dist <= REACH

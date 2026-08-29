@@ -13,7 +13,7 @@ const path = require('node:path');
 // commands create events
 
 // events are going through all the modifiers of the fighter before going through all the modifiers of the target of the event
-// events have 3 timing : before, during, after
+// events have 3 timing : before, during
 // events can have consequences as new events when finishing resolving
 // these consequences will resolve before the next timing of the main event
 // events are added and resolved as a stack

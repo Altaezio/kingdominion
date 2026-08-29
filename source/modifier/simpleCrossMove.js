@@ -9,13 +9,13 @@ module.exports = {
     GatherWantedInfo(info) {
     },
 
-    GatherInfo(barrack, fighterId, arena, info) {
+    GatherInfo(barrack, fighterId, arenaManager, info) {
         if (info.hasOwnProperty('closestEnemies')) {
-            info.closestEnemies = this.GetClosestEnemies(barrack, fighterId, arena);
+            info.closestEnemies = this.GetClosestEnemies(barrack, fighterId, arenaManager);
         }
     },
 
-    ProcessEvent(barrack, fighterId, map, event) {
+    ProcessEvent(barrack, fighterId, arenaManager, event) {
         if (event.modifierId === this.id &&
             event.type === 'moveInDirection' &&
             event.target === fighterId &&
@@ -23,7 +23,7 @@ module.exports = {
         ) {
             const fighter = barrack.GetFighterHolder().allFighters[fighterId];
             if (!fighter.outOfCombat) {
-                const fighterPos = map.GetObjectPosition(fighterId);
+                const fighterPos = arenaManager.GetObjectPosition(fighterId);
                 let newX = fighterPos.x;
                 let newY = fighterPos.y;
                 if (event.direction === 'east')
@@ -34,20 +34,20 @@ module.exports = {
                     newX -= event.amount;
                 else if (event.direction === 'south')
                     newY -= event.amount;
-                map.MoveObjectXY(fighterId, newX, newY);
+                arenaManager.MoveObjectXY(fighterId, newX, newY);
             }
         }
     },
 
-    GetCommand(barrack, fighterId, map, info, instruction) {
+    GetCommand(barrack, fighterId, arenaManager, info, instruction) {
         console.assert(instruction.hasOwnProperty('instructionType'), `[${this.id}] [GetCommand] Instruction does not have a type`);
         if (instruction.instructionType === 'moveTowardsClosest') {
             if (info.hasOwnProperty('closestEnemies') &&
                 info.closestEnemies.length > 0) {
                 console.assert(instruction.hasOwnProperty('reach'), `[${this.id}] [GetCommand] Instruction does not have a reach`);
 
-                const fighterPos = map.GetObjectPosition(fighterId);
-                const targetPos = map.GetObjectPosition(info.closestEnemies[0].id);
+                const fighterPos = arenaManager.GetObjectPosition(fighterId);
+                const targetPos = arenaManager.GetObjectPosition(info.closestEnemies[0].id);
                 const angle = Math.atan2(targetPos.y - fighterPos.y, targetPos.x - fighterPos.x);
                 let direction = 'east';
                 if (angle >= Math.PI / 4 && angle < 3 * Math.PI / 4)
@@ -83,21 +83,24 @@ module.exports = {
         }
     },
 
-    GetClosestEnemies(barrack, fighterId, arena) {
+    GetClosestEnemies(barrack, fighterId, arenaManager) {
+        const arena = arenaManager.GetArena();
         const thisFighter = barrack.GetFighterById(fighterId);
-        const fighterPos = arena.GetObjectPosition(fighterId);
+        const fighterPos = arenaManager.GetObjectPosition(fighterId);
         let closestEnemies = [];
-        const allPositions = Object.keys(arena.GetMap().map);
+        const allPositions = Object.keys(arena.map);
         allPositions.forEach((key) => {
             const [otherX, otherY] = key.split(';');
-            arena.GetMap().map[key].forEach((objectId) => {
+            console.log(arena.map[key]);
+            arena.map[key].forEach((objectId) => {
                 // assume everything is a fighter for now
                 if (objectId == thisFighter.id)
                     return;
 
                 const otherFighter = barrack.GetFighterById(objectId);
 
-                if (otherFighter.currentTeamId == thisFighter.currentTeamId)
+                if (otherFighter.currentTeamId == thisFighter.currentTeamId ||
+                    arena.fighterData[otherFighter.id].isOutOfCombat)
                     return;
 
                 const dist = Math.abs(otherX - fighterPos.x) + Math.abs(otherY - fighterPos.y);
