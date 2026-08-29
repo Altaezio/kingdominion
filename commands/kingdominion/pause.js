@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
-const main = require('../utility/main.js');
+const main = require('../utility/run.js');
 const { testChannelId } = require('../../settings.json');
 
 module.exports = {

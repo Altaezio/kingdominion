@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { testChannelId } = require('../../settings.json');
+const { detailedLogsChannelId } = require('../../settings.json');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
 
 module.exports = {
@@ -12,16 +12,12 @@ module.exports = {
     async execute(interaction) {
         await interaction.reply({ content: 'Scheduling game', flags: MessageFlags.Ephemeral });
 
-        const channel = interaction.client.channels.cache.get(testChannelId);
+        const channel = interaction.client.channels.cache.get(detailedLogsChannelId);
 
-        // one job = one combat, only from Monday to Friday starting at 8am
-        // production 
-        // const job = schedule.scheduleJob('runningGame', '* 8 * * 1-5', async function () {
-        //     await StartCombat(channel)
-        // });
-
-        // test, launching once :
-        await this.RunCombat(channel);
+        // one day = one combat, only from Monday to Friday starting at 8am
+        const job = schedule.scheduleJob('runningGame', '* 8 * * 1-5', async function () {
+            await StartCombat(channel)
+        });
 
         // TODO start job every week-end to gather votes
     },
@@ -75,7 +71,7 @@ module.exports = {
 
             }
             catch (error) {
-                console.log('Error : ', error);
+                console.error('Error : ', error);
                 await channel.send(`Error while initialising game :\n\`\`\`${error}\`\`\``);
                 return;
             }
