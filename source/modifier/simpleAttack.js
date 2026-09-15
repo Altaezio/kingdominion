@@ -27,7 +27,8 @@ module.exports = {
         if (event.type === 'sendDamage' &&
             event.author === fighterId &&
             event.target === fighterId &&
-            event.timing === 'during'
+            event.timing === 'during' &&
+            !event.isMissed
         ) {
             const fighter = barrack.GetFighterHolder().allFighters[fighterId];
             if (!fighter.outOfCombat) {

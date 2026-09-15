@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { detailedLogsChannelId } = require('../../settings.json');
+const { detailedLogsChannelId, locale } = require('../../settings.json');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
 
 module.exports = {
@@ -15,8 +15,8 @@ module.exports = {
         const channel = interaction.client.channels.cache.get(detailedLogsChannelId);
 
         // one day = one combat, only from Monday to Friday starting at 8am
-        const job = schedule.scheduleJob('runningGame', '* 8 * * 1-5', async function () {
-            await StartCombat(channel)
+        const job = schedule.scheduleJob('runningGame', '0 8 * * 1-5', async function () {
+            await RunCombat(channel)
         });
 
         // TODO start job every week-end to gather votes
@@ -341,7 +341,7 @@ module.exports = {
             if (!event.hasOwnProperty('timing'))
                 event.timing = 'before';
 
-            console.log('Process event', event);
+            console.log('Process event', event.type);
 
             // first the target if any
             if (event.hasOwnProperty('target')) {
@@ -352,7 +352,7 @@ module.exports = {
                 });
             }
 
-            // then all the othersi
+            // then all the others
             for (let i = 0; i < fightersInOrder.length; i++) {
                 let otherFighterId = fightersInOrder[(turnTakerInd + i) % fightersInOrder.length];
                 if (!event.hasOwnProperty('target') || otherFighterId != event.target) {
@@ -365,7 +365,7 @@ module.exports = {
             }
 
             if (event.timing === 'during') {
-                const text = eventTextConstructor.GetEventText(event);
+                const text = eventTextConstructor.GetEventText(event, locale, 'detailed');
                 if (text && text.length > 0) {
                     await arenaManager.Log(text, true, channel);
                 }
@@ -374,6 +374,8 @@ module.exports = {
             let consequences = []
             if (event.hasOwnProperty('consequences') && event.consequences.length > 0)
                 consequences = structuredClone(event.consequences);
+
+            arenaManager.RecordEvent(event, arena.turn.number);
 
             if (event.timing === 'before') {
                 event.timing = 'during';

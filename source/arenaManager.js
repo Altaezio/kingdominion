@@ -74,9 +74,26 @@ module.exports = {
             "height": 5,
             "map": {},
             "fighterData": {},
-            "log": []
+            "log": [],
+            "eventHistory": []
         };
         this.SaveArena('currentArena');
+    },
+
+    RecordEvent(event, turnNumber) {
+        const arena = this.GetArena();
+        if (!arena.hasOwnProperty('eventHistory'))
+            arena.eventHistory = [];
+        arena.eventHistory.push({
+            sequence: arena.eventHistory.length,
+            timestamp: new Date().toISOString(),
+            turn: turnNumber,
+            event: structuredClone(event),
+            stateAfter: {
+                map: structuredClone(arena.map),
+                fighterData: structuredClone(arena.fighterData)
+            }
+        });
     },
 
     GetState() {

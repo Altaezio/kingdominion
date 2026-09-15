@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
-const main = require('../utility/run.js');
+const main = require('./run.js');
 const { testChannelId } = require('../../settings.json');
 
 module.exports = {
@@ -24,7 +24,7 @@ module.exports = {
         }
         else {
             const channel = interaction.client.channels.cache.get(testChannelId);
-            main.StartCombat(channel);
+            main.RunCombat(channel);
             await interaction.editReply({ content: "Combat relancé" });
         }
     },
