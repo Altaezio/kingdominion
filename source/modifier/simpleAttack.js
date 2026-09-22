@@ -7,6 +7,7 @@ module.exports = {
     name: 'Attaque simple',
     type: 'action',
     description: 'Attaque de base au corps à corps',
+    tags: ['physical'],
 
     GatherWantedInfo(info) {
         if (!info.hasOwnProperty('closestEnemies')) {

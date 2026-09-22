@@ -4,6 +4,7 @@ module.exports = {
     name: 'Movement simple',
     type: 'move',
     description: 'Déplacement à 4 directions d\'une case',
+    tags: ['movement'],
 
 
     GatherWantedInfo(info) {

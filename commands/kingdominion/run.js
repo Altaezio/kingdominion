@@ -1,8 +1,42 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { detailedLogsChannelId, locale, maxFightersPerUser } = require('../../settings.json');
+const { detailedLogsChannelId, surveyChannelId, locale, maxFightersPerUser } = require('../../settings.json');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
+
+async function StartModifierSurvey(client) {
+    const surveyManager = require('../../source/modifierSurvey.js');
+    const modifierManager = require('../../source/modifierManager.js');
+    const channel = client.channels.cache.get(surveyChannelId);
+    if (!channel)
+        return;
+
+    modifierManager.LoadModifiers();
+    try {
+        await surveyManager.StartSurvey(channel, modifierManager);
+    }
+    catch (error) {
+        console.error(error.message);
+    }
+}
+
+async function CloseModifierSurvey(client) {
+    const surveyManager = require('../../source/modifierSurvey.js');
+    const barracks = require('../../source/barracks.js');
+    const modifierManager = require('../../source/modifierManager.js');
+    const survey = surveyManager.GetCurrentSurvey();
+    if (!survey || survey.status !== 'open')
+        return;
+
+    barracks.LoadAllFighters();
+    modifierManager.LoadModifiers();
+    const channel = client.channels.cache.get(survey.channelId) ?? client.channels.cache.get(surveyChannelId);
+    const result = await surveyManager.CloseSurvey(barracks, modifierManager, channel);
+    if (!result)
+        return;
+
+    console.log(`Modifier survey closed: ${result.appliedModifiers.length} modifiers applied`);
+}
 
 module.exports = {
     category: 'utility',
@@ -15,11 +49,16 @@ module.exports = {
         const channel = interaction.client.channels.cache.get(detailedLogsChannelId);
 
         // one day = one combat, only from Monday to Friday starting at 8am
-        const job = schedule.scheduleJob('runningGame', '0 8 * * 1-5', async function () {
-            await RunCombat(channel)
+        schedule.scheduleJob('runningGame', '0 8 * * 1-5', async function () {
+            await module.exports.RunCombat(channel)
         });
 
-        // TODO start job every week-end to gather votes
+        schedule.scheduleJob('startModifierSurvey', '0 10 * * 6', async function () {
+            await StartModifierSurvey(interaction.client);
+        });
+        schedule.scheduleJob('closeModifierSurvey', '0 20 * * 0', async function () {
+            await CloseModifierSurvey(interaction.client);
+        });
     },
 
     async RunCombat(channel) {

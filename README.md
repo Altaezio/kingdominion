@@ -30,9 +30,15 @@ You might want it to be deployed as a guild command in a private guild.
 # TODOs:
 -[x] have access to current fight data
 -[x] have daily combat with a pause in the week-end
--[] have combat statistics (win / death / kills etc)
--[] have the week-end pause be a (fake) survey (gathering modifier ideas ?)
-
-## Later
+-[x] have combat statistics (win / death / kills etc)
 -[] Implement new modifiers
 -[] Survey giving new modifiers
+-[] Tags
+
+## Later
+
+## Ideas
+- map
+ - more things on maps
+ - premade map
+ - generated maps ?

@@ -71,6 +71,22 @@ module.exports = {
         }
     },
 
+    AddModifierToFighter(fighterId, modifierId) {
+        const fighter = this.GetFighterById(fighterId);
+        if (fighter.baseModifierIds.includes(modifierId))
+            return false;
+
+        const modifierManager = require('./modifierManager.js');
+        const modifier = modifierManager.GetModifier(modifierId);
+        if (!modifier)
+            return false;
+
+        fighter.baseModifierIds.push(modifierId);
+        if (modifier.defaultData)
+            fighter.baseModifierData[modifierId] = structuredClone(modifier.defaultData);
+        return true;
+    },
+
     RecordMatchResult(participantIds, winningTeamId) {
         const fighterHolder = this.GetFighterHolder();
         participantIds.forEach(fighterId => {

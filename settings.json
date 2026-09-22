@@ -3,6 +3,7 @@
     "testChannelId": "1176125758016593920",
     "reportChannelId": "1495680363052273757",
     "commandChannelId": "1495679780446535771",
+    "surveyChannelId": "1495680363052273757",
     "detailedLogsChannelId": "1495679870095724564",
     "emptyTile": "⬛",
     "maxFightersPerUser": 1

@@ -5,6 +5,7 @@ module.exports = {
     name: 'Vie',
     type: 'passive',
     description: 'Ce qui fait tenir debout',
+    tags: ['health'],
     defaultData: {
         currentHealth: 10
     },

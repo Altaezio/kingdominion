@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const tagManager = require('./tagManager.js');
 
 // ACTION are modifiers fighters can use to do something
 // PASSIVE are modifiers always there
@@ -36,6 +37,7 @@ module.exports = {
             const modifier = require(filePath);
 
             if (modifier.hasOwnProperty('id')) {
+                tagManager.ValidateModifier(modifier);
                 this.loadedModifiers[modifier.id] = modifier;
             } else {
                 console.warn(`The modifier at ${filePath} is missing an id`);
@@ -69,5 +71,16 @@ module.exports = {
         }
         console.error(`Modifier ${id} not found`);
         return undefined;
+    },
+
+    HasModifierTag(modifierId, tagId) {
+        const modifier = this.GetModifier(modifierId);
+        return modifier !== undefined && tagManager.HasTag(modifier.tags ?? [], tagId);
+    },
+
+    GetModifiersByTag(tagId) {
+        return Object.values(this.GetModifiers()).filter(modifier =>
+            tagManager.HasTag(modifier.tags ?? [], tagId)
+        );
     }
 }
