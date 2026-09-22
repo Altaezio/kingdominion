@@ -14,18 +14,19 @@ module.exports = {
         ),
     async execute(interaction) {
         await interaction.deferReply();
+        const { Text } = require('../../source/commandLocalizations.js');
         const arenaManager = require('../../source/arenaManager.js');
         const arena = arenaManager.GetArena();
         const paused = interaction.options.getBoolean('toggle') ?? !arena.paused;
         arena.paused = paused;
         arenaManager.SaveArena('currentArena');
         if (paused) {
-            await interaction.editReply({ content: "Combat mis en pause" });
+            await interaction.editReply({ content: Text(interaction, 'pause', 'paused') });
         }
         else {
             const channel = interaction.client.channels.cache.get(testChannelId);
             main.RunCombat(channel);
-            await interaction.editReply({ content: "Combat relancé" });
+            await interaction.editReply({ content: Text(interaction, 'pause', 'resumed') });
         }
     },
 };

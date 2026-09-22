@@ -44,7 +44,8 @@ module.exports = {
         .setName('run')
         .setDescription('Commence les jeux !'),
     async execute(interaction) {
-        await interaction.reply({ content: 'Scheduling game', flags: MessageFlags.Ephemeral });
+        const { Text } = require('../../source/commandLocalizations.js');
+        await interaction.reply({ content: Text(interaction, 'run', 'scheduling'), flags: MessageFlags.Ephemeral });
 
         const channel = interaction.client.channels.cache.get(detailedLogsChannelId);
 
@@ -118,7 +119,7 @@ module.exports = {
                     arenaManager.AddFighter(fighter, spawnPoints[i]);
                 }
                 await arenaManager.Log(`Départ :\n${arenaManager.GetMapVisualisation()}`, false, channel);
-                arenaManager.SetState("battling");
+                arenaManager.SetState('battling');
 
             }
             catch (error) {
@@ -262,7 +263,7 @@ module.exports = {
 
         await arenaManager.Log(`Ordre d'actions : ${fighterOrderTxt}`, true, channel)
 
-        await arenaManager.Log("Beginning of turn event", true);
+        await arenaManager.Log('Beginning of turn event', true);
         const beginningOfTurnEvent = {
             type: 'beginningOfTurn'
         }
@@ -307,13 +308,13 @@ module.exports = {
             let instructions = [];
             arena.fighterData[fighterId].modifierIds.forEach(modId => {
                 const mod = modifierManager.GetModifier(modId);
-                if (mod.type === "action") {
+                if (mod.type === 'action') {
                     let command = mod.GetCommand(barrack, fighterId, arenaManager, info);
-                    console.assert(command.hasOwnProperty("type"), `Command does not have a type`);
-                    if (command.type === "actionCommand") {
+                    console.assert(command.hasOwnProperty('type'), `Command does not have a type`);
+                    if (command.type === 'actionCommand') {
                         commands.push(command);
                     } else {
-                        console.assert(command.type === "instruction", `Command type \'${command.type}\' is not supported`);
+                        console.assert(command.type === 'instruction', `Command type '${command.type}' is not supported`);
                         instructions.push(command);
                     }
                 }
@@ -327,7 +328,7 @@ module.exports = {
                 const totalWeightToShare = instruction.weight;
                 const firstNewInstructionInd = commands.length;
                 arena.fighterData[fighterId].modifierIds.forEach(modId => {
-                    if (modifierManager.GetModifier(modId).type === "move") {
+                    if (modifierManager.GetModifier(modId).type === 'move') {
                         let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arenaManager, info, instruction);
                         if (moveCommand !== undefined)
                             commands.push(moveCommand);

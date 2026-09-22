@@ -6,16 +6,16 @@ module.exports = {
     CreateFighter(name, icon, userLocalId) {
         const fighterHolder = this.GetFighterHolder();
         const newFighter = {
-            "id": fighterHolder.nextId,
-            "type": "fighter",
-            "name": name,
-            "icon": icon,
-            "userLocalId": userLocalId,
-            "baseModifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
-            "baseModifierData": {},
-            "currentTeamId": 0,
-            "wins": 0,
-            "losses": 0,
+            id: fighterHolder.nextId,
+            type: 'fighter',
+            name: name,
+            icon: icon,
+            userLocalId: userLocalId,
+            baseModifierIds: ['health', 'simpleAttack', 'simpleCrossMove'],
+            baseModifierData: {},
+            currentTeamId: 0,
+            wins: 0,
+            losses: 0,
         };
         fighterHolder.allFighters[newFighter.id] = newFighter;
         fighterHolder.nextId++;

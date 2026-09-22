@@ -63,12 +63,12 @@ module.exports = {
                 isMissed: attackIsMissed,
                 finalTarget: info.closestEnemies[0].id
             };
-            const command = { modifierId: this.id, type: "actionCommand", weight: 100, resultingEvent: resultingEvent };
+            const command = { modifierId: this.id, type: 'actionCommand', weight: 100, resultingEvent: resultingEvent };
             return command;
         }
         else {
             // INSTRUCTION TO MOVE TOWARDS CLOSEST
-            let instruction = { modifierId: this.id, type: "instruction", weight: 100, instructionType: "moveTowardsClosest", reach: REACH };
+            let instruction = { modifierId: this.id, type: 'instruction', weight: 100, instructionType: 'moveTowardsClosest', reach: REACH };
             return instruction;
         }
     }

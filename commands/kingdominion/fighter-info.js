@@ -22,11 +22,12 @@ module.exports = {
         const arenaManager = require('../../source/arenaManager.js');
         const userHandler = require(`../../source/userHandler.js`);
         const modifierManager = require(`../../source/modifierManager.js`);
+        const { Text } = require('../../source/commandLocalizations.js');
 
         const fighterName = interaction.options.getString('name');
         const fighter = barracks.GetFighterByName(fighterName);
         if (!fighter) {
-            await interaction.editReply({ content: `No fighter found with name '${fighterName}` });
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'fighterNotFound', { fighterName }) });
             return;
         }
 
@@ -46,13 +47,13 @@ module.exports = {
 
         const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
         if (!user) {
-            await interaction.editReply({ content: `No user found with id '${interaction.user.id}` });
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'userNotFound', { userId: interaction.user.id }) });
             return;
         }
 
         const modifiers = modifierManager.GetModifiers();
         if (!modifiers) {
-            await interaction.editReply({ content: `No modifier loaded` });
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'noModifier') });
             return;
         }
 
@@ -60,17 +61,17 @@ module.exports = {
         let modifiersText;
         let modifierIds;
         if (combatInfo && fighterData) {
-            modifiersText = `Ce combattant a *actuellement* **${fighterData.modifierIds.length}** modificateurs`;
+            modifiersText = Text(interaction, 'fighter-info', 'currentCount', { count: fighterData.modifierIds.length });
             modifierIds = fighterData.modifierIds;
         }
         else {
-            modifiersText = `Ce combattant a *de base* **${fighter.baseModifierIds.length}** modificateurs`;
+            modifiersText = Text(interaction, 'fighter-info', 'baseCount', { count: fighter.baseModifierIds.length });
             modifierIds = fighter.baseModifierIds;
         }
 
         modifierIds.forEach(modId => {
             const mod = modifiers[modId];
-            modifiersText = modifiersText.concat(`\n - **${mod.name}** (*${mod.type}*), ${mod.description}.`); // TODO:: ask for a description
+            modifiersText = modifiersText.concat(`\n - **${mod.name}** (*${mod.type}*), ${mod.description}.`);
             if ((combatInfo && fighterData && fighterData.modifierData.hasOwnProperty(mod.id) ||
                 !combatInfo && fighter.baseModifierData.hasOwnProperty(mod.id))) {
 
@@ -94,9 +95,9 @@ module.exports = {
                 }
             }
         });
-        let msg = `${fighter.icon}\nNom : **${fighter.name}**\nJoueur : **${user.name}**\nVictoires : **${fighter.wins ?? 0}**\nDéfaites : **${fighter.losses ?? 0}**\n${modifiersText}`;
+        let msg = `${fighter.icon}\n${Text(interaction, 'fighter-info', 'name')} : **${fighter.name}**\n${Text(interaction, 'fighter-info', 'player')} : **${user.name}**\n${Text(interaction, 'fighter-info', 'wins')} : **${fighter.wins ?? 0}**\n${Text(interaction, 'fighter-info', 'losses')} : **${fighter.losses ?? 0}**\n${modifiersText}`;
         if (combatInfo && fighterData && fighterData.isOutOfCombat) {
-            msg = "Combattant actuellement décédé ☠️\n" + msg;
+            msg = Text(interaction, 'fighter-info', 'outOfCombat') + '\n' + msg;
         }
         await interaction.editReply({ content: msg });
     },

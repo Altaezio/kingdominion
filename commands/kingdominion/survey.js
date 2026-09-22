@@ -5,13 +5,14 @@ module.exports = {
     category: 'kingdominion',
     data: new SlashCommandBuilder()
         .setName('survey')
-        .setDescription('Créé ou Ferme le sondage des modificateurs'),
+        .setDescription('Crée ou ferme le sondage des modificateurs'),
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const surveyManager = require('../../source/modifierSurvey.js');
         const barracks = require('../../source/barracks.js');
         const modifierManager = require('../../source/modifierManager.js');
+        const { Text } = require('../../source/commandLocalizations.js');
         const survey = surveyManager.GetCurrentSurvey();
 
         try {
@@ -19,19 +20,19 @@ module.exports = {
             if (!survey || survey.status !== 'open') {
                 const channel = interaction.client.channels.cache.get(surveyChannelId);
                 if (!channel) {
-                    await interaction.editReply({ content: 'Le canal du sondage est introuvable.' });
+                    await interaction.editReply({ content: Text(interaction, 'survey', 'channelNotFound') });
                     return;
                 }
 
                 await surveyManager.StartSurvey(channel, modifierManager);
-                await interaction.editReply({ content: 'Le sondage a ete lance.' });
+                await interaction.editReply({ content: Text(interaction, 'survey', 'started') });
             }
             else {
                 barracks.LoadAllFighters();
                 const channel = interaction.client.channels.cache.get(survey.channelId)
                     ?? interaction.client.channels.cache.get(surveyChannelId);
                 const result = await surveyManager.CloseSurvey(barracks, modifierManager, channel);
-                await interaction.editReply({ content: `Le sondage est ferme. ${result.appliedModifiers.length} modificateur(s) ajoute(s).` });
+                await interaction.editReply({ content: Text(interaction, 'survey', 'closed', { count: result.appliedModifiers.length }) });
             }
         }
         catch (error) {

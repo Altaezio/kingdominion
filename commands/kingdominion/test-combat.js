@@ -8,7 +8,8 @@ module.exports = {
         .setName('test-combat')
         .setDescription('Commence les jeux !'),
     async execute(interaction) {
-        await interaction.reply({ content: 'Starting one combat', flags: MessageFlags.Ephemeral });
+        const { Text } = require('../../source/commandLocalizations.js');
+        await interaction.reply({ content: Text(interaction, 'test-combat', 'starting'), flags: MessageFlags.Ephemeral });
 
         const channel = interaction.client.channels.cache.get(testChannelId);
         main.RunCombat(channel);

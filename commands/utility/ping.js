@@ -6,6 +6,7 @@ module.exports = {
         .setName('ping')
         .setDescription('Replies with Pong!'),
     async execute(interaction) {
-        await interaction.reply({ content: 'Pong!' });
+        const { Text } = require('../../source/commandLocalizations.js');
+        await interaction.reply({ content: Text(interaction, 'ping', 'pong') });
     },
 };

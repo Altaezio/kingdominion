@@ -45,7 +45,7 @@ module.exports = {
         }
     },
 
-    GetArena(arenaName = "currentArena") {
+    GetArena(arenaName = 'currentArena') {
         if (this.loadedArena === undefined)
             this.LoadArena(arenaName);
         return this.loadedArena;
@@ -63,19 +63,19 @@ module.exports = {
 
     ResetArena() {
         this.loadedArena = {
-            "state": "initialisation",
-            "turn": {
-                "number": 0,
-                "turnOrder": [],
-                "currentTurnTakerInd": 0
+            state: 'initialisation',
+            turn: {
+                number: 0,
+                turnOrder: [],
+                currentTurnTakerInd: 0
             },
-            "paused": false,
-            "width": 5,
-            "height": 5,
-            "map": {},
-            "fighterData": {},
-            "log": [],
-            "eventHistory": []
+            paused: false,
+            width: 5,
+            height: 5,
+            map: {},
+            fighterData: {},
+            log: [],
+            eventHistory: []
         };
         this.SaveArena('currentArena');
     },
@@ -322,7 +322,7 @@ module.exports = {
     GetMapVisualisation() {
         const barrack = require('./barracks.js');
         const arena = this.GetArena();
-        let visu = "";
+        let visu = '';
         for (let y = 0; y < arena.height + 1; y++) {
             for (let x = 0; x < arena.width + 1; x++) {
                 const positionStr = `${x};${y}`;
@@ -349,9 +349,9 @@ module.exports = {
         const arena = this.GetArena();
         this.AddObjectsToPosition(fighter.id, position);
         arena.fighterData[fighter.id] = {
-            "isOutOfCombat": false,
-            "modifierIds": fighter.baseModifierIds.toSpliced(),
-            "modifierData": structuredClone(fighter.baseModifierData)
+            isOutOfCombat: false,
+            modifierIds: fighter.baseModifierIds.toSpliced(),
+            modifierData: structuredClone(fighter.baseModifierData)
         }
     },
 

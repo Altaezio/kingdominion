@@ -3,6 +3,7 @@ const { Events, MessageFlags } = require('discord.js');
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
+        const { Text } = require('../source/commandLocalizations.js');
         if (interaction.isStringSelectMenu() && interaction.customId.startsWith('modifier-survey:')) {
             await this.executeModifierSurveyVote(interaction);
             return;
@@ -12,7 +13,7 @@ module.exports = {
 
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
-            await interaction.reply({ content: `No command matching ${interaction.commandName} was found.`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'interaction', 'commandNotFound', { name: interaction.commandName }), flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -30,10 +31,10 @@ module.exports = {
             console.error(`Error: `, error);
             console.error(`Interaction: `, interaction);
             if (interaction.replied) {
-                await interaction.followUp({ content: `There was an error while executing this command! Error: ${error}, Interaction: ${interaction}`, flags: MessageFlags.Ephemeral });
+                await interaction.followUp({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
             }
             else {
-                await interaction.editReply({ content: `There was an error while executing this command! Error: ${error}, Interaction: ${interaction}`, flags: MessageFlags.Ephemeral });
+                await interaction.editReply({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
             }
         }
     },
@@ -43,37 +44,38 @@ module.exports = {
         const userHandler = require('../source/userHandler.js');
         const barracks = require('../source/barracks.js');
         const modifierManager = require('../source/modifierManager.js');
+        const { Text } = require('../source/commandLocalizations.js');
         const surveyId = interaction.customId.split(':')[1];
         const survey = surveyManager.GetCurrentSurvey();
 
         if (!survey || survey.id !== surveyId || survey.status !== 'open') {
-            await interaction.reply({ content: 'Ce sondage est termine.', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'survey-vote', 'closed'), flags: MessageFlags.Ephemeral });
             return;
         }
         if (interaction.values.length !== 1) {
-            await interaction.reply({ content: 'Tu peux choisir un seul modificateur.', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'survey-vote', 'single'), flags: MessageFlags.Ephemeral });
             return;
         }
 
         const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
         const fighters = barracks.GetFightersForUser(user.id);
         if (fighters.length === 0) {
-            await interaction.reply({ content: 'Tu dois avoir un combattant pour voter.', flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'survey-vote', 'noFighter'), flags: MessageFlags.Ephemeral });
             return;
         }
         if (fighters.length > 1) {
-            await interaction.reply({ content: "Le sondage ne supporte actuellement qu'un combattant par joueur.", flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'survey-vote', 'multipleFighters'), flags: MessageFlags.Ephemeral });
             return;
         }
 
         const modifierId = interaction.values[0];
         if (!surveyManager.RegisterVote(surveyId, fighters[0].id, modifierId)) {
-            await interaction.reply({ content: "Ton vote n'a pas pu etre enregistre.", flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: Text(interaction, 'survey-vote', 'voteFailed'), flags: MessageFlags.Ephemeral });
             return;
         }
 
         await interaction.reply({
-            content: `Vote enregistre pour ${modifierManager.GetModifier(modifierId).name}.`,
+            content: Text(interaction, 'survey-vote', 'voteRecorded', { name: modifierManager.GetModifier(modifierId).name }),
             flags: MessageFlags.Ephemeral,
         });
         const updatedSurvey = surveyManager.GetCurrentSurvey();

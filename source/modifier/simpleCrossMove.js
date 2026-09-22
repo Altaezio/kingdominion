@@ -70,7 +70,7 @@ module.exports = {
                     direction: direction,
                     finalTarget: info.closestEnemies[0].id
                 };
-                const command = { modifierId: this.id, type: "moveCommand", weight: -1, resultingEvent: resultingEvent };
+                const command = { modifierId: this.id, type: 'moveCommand', weight: -1, resultingEvent: resultingEvent };
                 return command;
             }
             else {

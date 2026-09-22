@@ -12,6 +12,7 @@ module.exports = {
         ),
     async execute(interaction) {
         await interaction.deferReply();
+        const { Text } = require('../../source/commandLocalizations.js');
 
         const stopAll = interaction.options.getBoolean('stop-all') ?? false;
 
@@ -25,18 +26,19 @@ module.exports = {
             const currentTime = new Date();
             arenaManager.SaveArena(`${currentTime.toLocaleDateString('fr-FR').replaceAll('/', '-')}_currentArena`);
             arenaManager.ResetArena();
-            await interaction.editReply({ content: "Combat arrêté" });
+            await interaction.editReply({ content: Text(interaction, 'stop', 'stopped') });
         }
         else {
+            const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the entire game`);
 
             const canceled = schedule.cancelJob('runningGame');
             if (!canceled){
                 console.error('[' + currentTime.toLocaleString('fr-FR') + `]: Game not stopped`);
-                await interaction.editReply({ content: "Echec de l'arrêt du jeu" });
+                await interaction.editReply({ content: Text(interaction, 'stop', 'failed') });
             }
             else{
-                await interaction.editReply({ content: "Jeu arrêté" });
+                await interaction.editReply({ content: Text(interaction, 'stop', 'gameStopped') });
             }
             arenaManager.SaveArena('currentArena');
         }
