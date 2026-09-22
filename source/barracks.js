@@ -11,7 +11,7 @@ module.exports = {
             name: name,
             icon: icon,
             userLocalId: userLocalId,
-            baseModifierIds: ['health', 'simpleAttack', 'simpleCrossMove'],
+            baseModifierIds: ['health', 'vision', 'simpleAttack', 'simpleCrossMove'],
             baseModifierData: {},
             currentTeamId: 0,
             wins: 0,

@@ -10,9 +10,8 @@ module.exports = {
     tags: ['physical'],
 
     GatherWantedInfo(info) {
-        if (!info.hasOwnProperty('closestEnemies')) {
-            info.closestEnemies = [];
-        }
+        if (!info.hasOwnProperty('visibleEnemies'))
+            info.visibleEnemies = [];
     },
 
     GatherInfo(barrack, fighterId, arenaManager, info) {
@@ -48,10 +47,11 @@ module.exports = {
     },
 
     GetCommand(barrack, fighterId, arenaManager, info) {
-        if (info.hasOwnProperty('closestEnemies') &&
-            info.closestEnemies.length > 0 &&
-            info.closestEnemies[0].dist <= REACH
-        ) { // ATAK
+        const fighterPosition = arenaManager.GetObjectPosition(fighterId);
+        const target = this.GetClosestVisibleEnemy(fighterPosition, info.visibleEnemies ?? []);
+        if (target &&
+            Math.abs(target.position.x - fighterPosition.x) + Math.abs(target.position.y - fighterPosition.y) <= REACH
+        ) {
             const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
             const resultingEvent = {
                 modifierId: this.id,
@@ -61,15 +61,30 @@ module.exports = {
                 amount: DAMAGE,
                 dist: REACH,
                 isMissed: attackIsMissed,
-                finalTarget: info.closestEnemies[0].id
+                finalTarget: target.id
             };
             const command = { modifierId: this.id, type: 'actionCommand', weight: 100, resultingEvent: resultingEvent };
             return command;
         }
         else {
-            // INSTRUCTION TO MOVE TOWARDS CLOSEST
-            let instruction = { modifierId: this.id, type: 'instruction', weight: 100, instructionType: 'moveTowardsClosest', reach: REACH };
+            const instruction = {
+                modifierId: this.id,
+                type: 'instruction',
+                weight: 100,
+                instructionType: 'moveTowardsClosest',
+                visibleEnemies: info.visibleEnemies ?? [],
+                reach: REACH,
+            };
             return instruction;
         }
+    },
+
+    GetClosestVisibleEnemy(fighterPosition, visibleEnemies) {
+        return visibleEnemies
+            .toSorted((first, second) => {
+                const firstDistance = Math.abs(first.position.x - fighterPosition.x) + Math.abs(first.position.y - fighterPosition.y);
+                const secondDistance = Math.abs(second.position.x - fighterPosition.x) + Math.abs(second.position.y - fighterPosition.y);
+                return firstDistance - secondDistance;
+            })[0];
     }
 }

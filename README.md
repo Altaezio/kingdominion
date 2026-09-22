@@ -31,9 +31,11 @@ You might want it to be deployed as a guild command in a private guild.
 -[x] have access to current fight data
 -[x] have daily combat with a pause in the week-end
 -[x] have combat statistics (win / death / kills etc)
+-[x] Survey giving new modifiers
+-[x] Tags
+-[] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
+-[] remove chance to hit on attack and add a dodge modifier
 -[] Implement new modifiers
--[] Survey giving new modifiers
--[] Tags
 
 ## Later
 

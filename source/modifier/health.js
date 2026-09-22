@@ -22,8 +22,6 @@ module.exports = {
             info.currentHealth = fighterData.modifierData[this.id].currentHealth;
         }
         if (info.hasOwnProperty('maxHealth')) {
-            // console.assert(fighter.modifierData.hasOwnProperty(this.id), `Fighter ${fighter.id} does not have health`);
-            // console.assert(fighter.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
             info.maxHealth = MAX_HEALTH;
         }
     },
@@ -44,9 +42,7 @@ module.exports = {
                 const fighterData = arena.fighterData[fighterId];
                 console.log(fighterData);
                 console.assert(fighterData.modifierData.hasOwnProperty(this.id), `Fighter ${fighterId} does not have health`);
-                // console.assert(fighterData.modifierData[this.id].hasOwnProperty('maxHealth'), `Fighter ${fighter.id} does not have health maxHealth`);
                 fighterData.modifierData[this.id].currentHealth -= event.amount;
-                // event.log.push(`Le combatant ${fighter.name} a perdu ${event.amount} points de vie`);
 
                 if (fighterData.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {
@@ -74,7 +70,6 @@ module.exports = {
             event.target === fighterId
         ) {
             arenaManager.GetArena().fighterData[fighterId].isOutOfCombat = true;
-            // arenaManager.RemoveObject(fighterId);
         }
     }
 }

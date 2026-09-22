@@ -33,11 +33,11 @@ module.exports = {
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the entire game`);
 
             const canceled = schedule.cancelJob('runningGame');
-            if (!canceled){
+            if (!canceled) {
                 console.error('[' + currentTime.toLocaleString('fr-FR') + `]: Game not stopped`);
                 await interaction.editReply({ content: Text(interaction, 'stop', 'failed') });
             }
-            else{
+            else {
                 await interaction.editReply({ content: Text(interaction, 'stop', 'gameStopped') });
             }
             arenaManager.SaveArena('currentArena');

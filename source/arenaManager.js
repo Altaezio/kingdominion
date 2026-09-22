@@ -1,5 +1,6 @@
 const fs = require('node:fs');
-const { emptyTile } = require('../settings.json')
+const { emptyTile, locale } = require('../settings.json');
+const { GetLogText } = require('./logTexts.js');
 
 module.exports = {
     loadedArena: undefined,
@@ -355,14 +356,24 @@ module.exports = {
         }
     },
 
-    async Log(msg, useConsole, channel, flags) {
+    async Log(message, useConsole, channel, flags, localeName = locale) {
         const arena = this.GetArena();
         const currentTime = new Date();
-        const timedText = `[${currentTime.toLocaleString('fr-FR')}]: ` + msg
+        let localizedMessage;
+        if (typeof message === 'string') {
+            localizedMessage = message;
+        }
+        else if (message?.key) {
+            localizedMessage = GetLogText(message.key, message.values)[localeName?.toLowerCase().startsWith('fr') ? 'fr' : 'en'];
+        }
+        else {
+            localizedMessage = message[localeName?.toLowerCase().startsWith('fr') ? 'fr' : 'en'];
+        }
+        const timedText = `[${currentTime.toLocaleString('fr-FR')}]: ` + localizedMessage;
         arena.log = arena.log.concat(timedText);
         if (useConsole)
             console.log(timedText);
         if (channel)
-            await channel.send({ content: msg, flags: flags });
+            await channel.send({ content: localizedMessage, flags: flags });
     }
 };

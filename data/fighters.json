@@ -9,6 +9,7 @@
             "currentTeamId": 0,
             "baseModifierIds": [
                 "health",
+                "vision",
                 "simpleAttack",
                 "simpleCrossMove"
             ],
@@ -29,6 +30,7 @@
             "currentTeamId": 1,
             "baseModifierIds": [
                 "health",
+                "vision",
                 "simpleAttack",
                 "simpleCrossMove"
             ],
@@ -48,6 +50,7 @@
             "userLocalId": 0,
             "baseModifierIds": [
                 "health",
+                "vision",
                 "simpleAttack",
                 "simpleCrossMove"
             ],
@@ -68,6 +71,7 @@
             "userLocalId": 0,
             "baseModifierIds": [
                 "health",
+                "vision",
                 "simpleAttack",
                 "simpleCrossMove"
             ],

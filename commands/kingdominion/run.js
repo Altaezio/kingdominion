@@ -3,6 +3,11 @@ const schedule = require('node-schedule');
 const fs = require('node:fs');
 const { detailedLogsChannelId, surveyChannelId, locale, maxFightersPerUser } = require('../../settings.json');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
+const { GetLogDescriptor } = require('../../source/logTexts.js');
+
+function logText(key, values = {}) {
+    return GetLogDescriptor(key, values);
+}
 
 async function StartModifierSurvey(client) {
     const surveyManager = require('../../source/modifierSurvey.js');
@@ -78,7 +83,7 @@ module.exports = {
 
         let arena = arenaManager.GetArena();
         if (arena.paused) {
-            arenaManager.Log('Combat déjà en pause. /pause pour le relancer ou /stop pour l\'arrêter', true, channel, MessageFlags.Ephemeral);
+            arenaManager.Log(logText('paused'), true, channel, MessageFlags.Ephemeral, locale);
             return;
         }
 
@@ -104,12 +109,12 @@ module.exports = {
 
                 let nFighters = fightersIds.length;
                 if (nFighters < 2) {
-                    arenaManager.Log(`Not enough fighters to start (${nFighters})`, true, channel, MessageFlags.Ephemeral)
+                    arenaManager.Log(logText('notEnoughFighters', { count: nFighters }), true, channel, MessageFlags.Ephemeral, locale)
                     return;
                 }
 
                 justStarted = true;
-                await arenaManager.Log('Que les jeux commencent !', true, channel);
+                await arenaManager.Log(logText('combatStart'), true, channel, undefined, locale);
 
                 // give fighters positions
                 const spawnPoints = arenaManager.GetSpawnPoints(nFighters);
@@ -118,7 +123,7 @@ module.exports = {
                     const fighter = fighterHolder.allFighters[fighterId]
                     arenaManager.AddFighter(fighter, spawnPoints[i]);
                 }
-                await arenaManager.Log(`Départ :\n${arenaManager.GetMapVisualisation()}`, false, channel);
+                await arenaManager.Log(logText('departure', { map: arenaManager.GetMapVisualisation() }), false, channel, undefined, locale);
                 arenaManager.SetState('battling');
 
             }
@@ -168,7 +173,7 @@ module.exports = {
                             fightersPerTeam[fighter.currentTeamId]++;
                         }
                     }
-                    await arenaManager.Log(`Fighters alive : ${fightersIds}`, true);
+                    await arenaManager.Log(logText('fightersAlive', { fighters: fightersIds }), true, undefined, undefined, locale);
                     const nTeams = Object.keys(fightersPerTeam).length;
                     if (nTeams < 2) {
                         let msg;
@@ -177,17 +182,17 @@ module.exports = {
                             barrack.RecordMatchResult(Object.keys(arena.fighterData), Number(winningTeamId));
                             // WINNER
                             if (fightersPerTeam[0] == 1) {
-                                msg = `👑 Bravo à ${barrack.GetFighterFullName(fighterAlive)} pour sa victoire ! 👑`;
+                                msg = logText('winner', { fighter: barrack.GetFighterFullName(fighterAlive) });
                             }
                             else {
-                                msg = `👑 Bravo à l'équipe de ${barrack.GetFighterFullName(fighterAlive)} pour sa victoire ! 👑`;
+                                msg = logText('teamWinner', { fighter: barrack.GetFighterFullName(fighterAlive) });
                             }
                         }
                         else if (nTeams === 0) {
                             // EQUALITY
-                            msg = `Bravo à personne pour cette égalité`;
+                            msg = logText('draw');
                         }
-                        await arenaManager.Log(msg, true, channel);
+                        await arenaManager.Log(msg, true, channel, undefined, locale);
                         arenaManager.SetState('finished');
                         const currentTime = new Date();
                         arenaManager.SaveArena(`${currentTime.toLocaleDateString('fr-FR').replaceAll('/', '-')}_currentArena`);
@@ -249,7 +254,7 @@ module.exports = {
 
         // Tell beginning of combat or turn
         if (turnObject.number === 0) {
-            await arenaManager.Log(`# --- **Début du combat** ---`, true, channel);
+            await arenaManager.Log(logText('combatBeginning'), true, channel, undefined, locale);
             const beginningOfCombatEvent = {
                 type: 'beginningOfCombat'
             };
@@ -258,12 +263,11 @@ module.exports = {
             turnObject.number++;
         }
 
-        const startTurnText = `## --- Tour **${turnObject.number}** ---`;
-        await arenaManager.Log(startTurnText, true, channel);
+        await arenaManager.Log(logText('turn', { number: turnObject.number }), true, channel, undefined, locale);
 
-        await arenaManager.Log(`Ordre d'actions : ${fighterOrderTxt}`, true, channel)
+        await arenaManager.Log(logText('turnOrder', { order: fighterOrderTxt }), true, channel, undefined, locale)
 
-        await arenaManager.Log('Beginning of turn event', true);
+        await arenaManager.Log(logText('beginningOfTurn'), true, undefined, undefined, locale);
         const beginningOfTurnEvent = {
             type: 'beginningOfTurn'
         }
@@ -285,7 +289,7 @@ module.exports = {
                 continue;
 
             turnObject.currentTurnTakerInd = i;
-            await arenaManager.Log(`> Action de ${barrack.GetFighterFullName(fighter)}`, true, channel);
+            await arenaManager.Log(logText('action', { fighter: barrack.GetFighterFullName(fighter) }), true, channel, undefined, locale);
 
             // Gather what info they want
             console.log('Gather wanted info');
@@ -329,9 +333,13 @@ module.exports = {
                 const firstNewInstructionInd = commands.length;
                 arena.fighterData[fighterId].modifierIds.forEach(modId => {
                     if (modifierManager.GetModifier(modId).type === 'move') {
-                        let moveCommand = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arenaManager, info, instruction);
-                        if (moveCommand !== undefined)
-                            commands.push(moveCommand);
+                        const moveCommands = modifierManager.GetModifier(modId).GetCommand(barrack, fighterId, arenaManager, info, instruction);
+                        if (moveCommands === undefined)
+                            return;
+                        if (Array.isArray(moveCommands))
+                            commands.push(...moveCommands);
+                        else
+                            commands.push(moveCommands);
                     }
                 });
                 const commandsAdded = commands.length - firstNewInstructionInd;
@@ -367,7 +375,7 @@ module.exports = {
             await this.ResolveEventStack(eventStack, turnObject.turnOrder, i, channel);
 
             // End state visualisation
-            await arenaManager.Log(`Après action de ${barrack.GetFighterFullName(fighter)} :\n${arenaManager.GetMapVisualisation()}`, false, channel);
+            await arenaManager.Log(logText('afterAction', { fighter: barrack.GetFighterFullName(fighter), map: arenaManager.GetMapVisualisation() }), false, channel, undefined, locale);
             await sleep(30); // wait 30s between actions
         }
         turnObject.number++;
