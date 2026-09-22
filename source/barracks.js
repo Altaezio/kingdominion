@@ -14,6 +14,8 @@ module.exports = {
             "baseModifierIds": ['health', 'simpleAttack', 'simpleCrossMove'],
             "baseModifierData": {},
             "currentTeamId": 0,
+            "wins": 0,
+            "losses": 0,
         };
         fighterHolder.allFighters[newFighter.id] = newFighter;
         fighterHolder.nextId++;
@@ -42,6 +44,12 @@ module.exports = {
         return fighterId !== undefined;
     },
 
+    GetFightersForUser(userLocalId) {
+        const fighterHolder = this.GetFighterHolder();
+        return Object.values(fighterHolder.allFighters)
+            .filter(fighter => fighter.userLocalId === userLocalId);
+    },
+
     LoadAllFighters() {
         const fighterHolder = JSON.parse(fs.readFileSync(`./data/fighters.json`, 'utf8'));
         this.loadedFighterHolder = fighterHolder;
@@ -61,6 +69,21 @@ module.exports = {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Fighters saved`);
         }
+    },
+
+    RecordMatchResult(participantIds, winningTeamId) {
+        const fighterHolder = this.GetFighterHolder();
+        participantIds.forEach(fighterId => {
+            const fighter = fighterHolder.allFighters[fighterId];
+            if (!fighter)
+                return;
+
+            if (fighter.currentTeamId === winningTeamId)
+                fighter.wins++;
+            else
+                fighter.losses++;
+        });
+        this.SaveFighters();
     },
 
     GetFighterHolder() {

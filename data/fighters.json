@@ -16,7 +16,9 @@
                 "health": {
                     "currentHealth": 10
                 }
-            }
+            },
+            "wins": 0,
+            "losses": 0
         },
         "1": {
             "id": 1,
@@ -34,7 +36,9 @@
                 "health": {
                     "currentHealth": 10
                 }
-            }
+            },
+            "wins": 0,
+            "losses": 0
         },
         "2": {
             "id": 2,
@@ -52,7 +56,9 @@
                     "currentHealth": 10
                 }
             },
-            "currentTeamId": 2
+            "currentTeamId": 2,
+            "wins": 0,
+            "losses": 0
         },
         "3": {
             "id": 3,
@@ -70,7 +76,9 @@
                     "currentHealth": 10
                 }
             },
-            "currentTeamId": 3
+            "currentTeamId": 3,
+            "wins": 0,
+            "losses": 0
         }
     },
     "nextId": 4

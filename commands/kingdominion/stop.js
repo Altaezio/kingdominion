@@ -19,10 +19,17 @@ module.exports = {
         const arena = arenaManager.GetArena();
 
         if (!stopAll) {
-            arenaManager.SetState('finished'); // 'stopped' instead ?
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the current fight`);
+
+            arenaManager.SetState('finished');
+            const currentTime = new Date();
+            arenaManager.SaveArena(`${currentTime.toLocaleDateString('fr-FR').replaceAll('/', '-')}_currentArena`);
+            arenaManager.ResetArena();
             await interaction.editReply({ content: "Combat arrêté" });
         }
         else {
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the entire game`);
+
             const canceled = schedule.cancelJob('runningGame');
             if (!canceled){
                 console.error('[' + currentTime.toLocaleString('fr-FR') + `]: Game not stopped`);
@@ -31,7 +38,7 @@ module.exports = {
             else{
                 await interaction.editReply({ content: "Jeu arrêté" });
             }
+            arenaManager.SaveArena('currentArena');
         }
-        arenaManager.SaveArena('currentArena');
     },
 };

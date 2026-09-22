@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { detailedLogsChannelId, locale } = require('../../settings.json');
+const { detailedLogsChannelId, locale, maxFightersPerUser } = require('../../settings.json');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
 
 module.exports = {
@@ -43,7 +43,19 @@ module.exports = {
         }
 
         const fighterHolder = barrack.GetFighterHolder();
-        const fightersIds = Object.keys(fighterHolder.allFighters);
+        const fightersPerUser = {};
+        const fightersIds = Object.keys(fighterHolder.allFighters).filter(fighterId => {
+            const fighter = fighterHolder.allFighters[fighterId];
+            if (fighter.userLocalId === 0)
+                return true;
+
+            fightersPerUser[fighter.userLocalId] ??= 0;
+            if (fightersPerUser[fighter.userLocalId] >= maxFightersPerUser)
+                return false;
+
+            fightersPerUser[fighter.userLocalId]++;
+            return true;
+        });
 
         if (arenaManager.GetState() === 'initialisation') {
             try {
@@ -60,7 +72,7 @@ module.exports = {
                 await arenaManager.Log('Que les jeux commencent !', true, channel);
 
                 // give fighters positions
-                const spawnPoints = arenaManager.GetSpawnPositions(nFighters);
+                const spawnPoints = arenaManager.GetSpawnPoints(nFighters);
                 for (let i = 0; i < nFighters; i++) {
                     const fighterId = fightersIds[i]
                     const fighter = fighterHolder.allFighters[fighterId]
@@ -121,6 +133,8 @@ module.exports = {
                     if (nTeams < 2) {
                         let msg;
                         if (nTeams === 1) {
+                            const winningTeamId = Object.keys(fightersPerTeam)[0];
+                            barrack.RecordMatchResult(Object.keys(arena.fighterData), Number(winningTeamId));
                             // WINNER
                             if (fightersPerTeam[0] == 1) {
                                 msg = `👑 Bravo à ${barrack.GetFighterFullName(fighterAlive)} pour sa victoire ! 👑`;

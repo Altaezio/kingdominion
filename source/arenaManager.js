@@ -125,6 +125,99 @@ module.exports = {
         return spawns;
     },
 
+    GetSpawnPoints(nToSpawn) {
+        const arena = this.GetArena();
+        const positions = [];
+        for (let y = 0; y < arena.height; y++) {
+            for (let x = 0; x < arena.width; x++) {
+                positions.push({ x, y });
+            }
+        }
+
+        const shuffle = (items) => {
+            for (let index = items.length - 1; index > 0; index--) {
+                const randomIndex = Math.floor(Math.random() * (index + 1));
+                [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+            }
+            return items;
+        };
+
+        if (nToSpawn <= 0 || nToSpawn > positions.length)
+            return [];
+
+        shuffle(positions);
+
+        const distanceSquared = (first, second) => {
+            const xDistance = first.x - second.x;
+            const yDistance = first.y - second.y;
+            return xDistance * xDistance + yDistance * yDistance;
+        };
+        const nearestDistances = (points) => points.map((point, pointIndex) => {
+            let nearest = Infinity;
+            points.forEach((other, otherIndex) => {
+                if (pointIndex !== otherIndex)
+                    nearest = Math.min(nearest, distanceSquared(point, other));
+            });
+            return nearest;
+        });
+        const score = (points) => {
+            const distances = nearestDistances(points);
+            const minimum = Math.min(...distances);
+            const maximum = Math.max(...distances);
+            return { spread: maximum - minimum, minimum };
+        };
+        const isBetter = (candidate, best) => candidate.spread < best.spread ||
+            (candidate.spread === best.spread && candidate.minimum > best.minimum);
+
+        let bestPoints;
+        let bestScore = { spread: Infinity, minimum: -Infinity };
+        const combinationLimit = 250000;
+        let combinations = 1;
+        for (let index = 1; index <= nToSpawn; index++)
+            combinations = combinations * (positions.length - nToSpawn + index) / index;
+
+        if (combinations <= combinationLimit) {
+            const selected = [];
+            const search = (nextIndex) => {
+                if (selected.length === nToSpawn) {
+                    const candidateScore = score(selected);
+                    if (isBetter(candidateScore, bestScore)) {
+                        bestPoints = selected.map(point => ({ ...point }));
+                        bestScore = candidateScore;
+                    }
+                    return;
+                }
+
+                const remaining = nToSpawn - selected.length;
+                for (let index = nextIndex; index <= positions.length - remaining; index++) {
+                    selected.push(positions[index]);
+                    search(index + 1);
+                    selected.pop();
+                }
+            };
+            search(0);
+        }
+        else {
+            bestPoints = [positions[0]];
+            while (bestPoints.length < nToSpawn) {
+                let farthestPosition;
+                let farthestDistance = -1;
+                positions.forEach(position => {
+                    if (bestPoints.some(point => point.x === position.x && point.y === position.y))
+                        return;
+                    const nearest = Math.min(...bestPoints.map(point => distanceSquared(position, point)));
+                    if (nearest > farthestDistance) {
+                        farthestPosition = position;
+                        farthestDistance = nearest;
+                    }
+                });
+                bestPoints.push(farthestPosition);
+            }
+        }
+
+        return shuffle(bestPoints);
+    },
+
     GetObjectsAtPosition(position) {
         const arena = this.GetArena();
         const positionStr = `${position.x};${position.y}`;

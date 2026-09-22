@@ -1,0 +1,260 @@
+{
+    "state": "finished",
+    "turn": {
+        "number": 1,
+        "turnOrder": [
+            "2",
+            "1",
+            "3",
+            "0"
+        ],
+        "currentTurnTakerInd": 0,
+        "fightersOnMapIds": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ]
+    },
+    "paused": false,
+    "width": 5,
+    "height": 5,
+    "map": {
+        "0;4": [
+            0
+        ],
+        "4;0": [
+            1
+        ],
+        "0;0": [
+            2
+        ],
+        "4;4": [
+            3
+        ]
+    },
+    "fighterData": {
+        "0": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "1": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "2": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        },
+        "3": {
+            "isOutOfCombat": false,
+            "modifierIds": [
+                "health",
+                "simpleAttack",
+                "simpleCrossMove"
+            ],
+            "modifierData": {
+                "health": {
+                    "currentHealth": 10
+                }
+            }
+        }
+    },
+    "log": [
+        "[20/09/2026 16:25:54]: Que les jeux commencent !",
+        "[20/09/2026 16:25:54]: Départ :\n👨⬛⬛⬛🦤⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛⬛\n🫏⬛⬛⬛🦐⬛\n⬛⬛⬛⬛⬛⬛\n",
+        "[20/09/2026 16:25:54]: # --- **Début du combat** ---",
+        "[20/09/2026 16:25:54]: Événement inconnu : beginningOfCombat",
+        "[20/09/2026 16:25:55]: ## --- Tour **1** ---",
+        "[20/09/2026 16:25:55]: Ordre d'actions :  👨 Donkey >  🦤 Fiona >  🦐 Dragon >  🫏 Shrek"
+    ],
+    "eventHistory": [
+        {
+            "sequence": 0,
+            "timestamp": "2026-09-20T14:25:54.974Z",
+            "turn": 0,
+            "event": {
+                "type": "beginningOfCombat",
+                "timing": "before"
+            },
+            "stateAfter": {
+                "map": {
+                    "0;4": [
+                        0
+                    ],
+                    "4;0": [
+                        1
+                    ],
+                    "0;0": [
+                        2
+                    ],
+                    "4;4": [
+                        3
+                    ]
+                },
+                "fighterData": {
+                    "0": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "1": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "2": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "3": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "sequence": 1,
+            "timestamp": "2026-09-20T14:25:55.386Z",
+            "turn": 0,
+            "event": {
+                "type": "beginningOfCombat",
+                "timing": "during",
+                "consequences": []
+            },
+            "stateAfter": {
+                "map": {
+                    "0;4": [
+                        0
+                    ],
+                    "4;0": [
+                        1
+                    ],
+                    "0;0": [
+                        2
+                    ],
+                    "4;4": [
+                        3
+                    ]
+                },
+                "fighterData": {
+                    "0": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "1": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "2": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    },
+                    "3": {
+                        "isOutOfCombat": false,
+                        "modifierIds": [
+                            "health",
+                            "simpleAttack",
+                            "simpleCrossMove"
+                        ],
+                        "modifierData": {
+                            "health": {
+                                "currentHealth": 10
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "date": "20/09/2026 16:26:00"
+}

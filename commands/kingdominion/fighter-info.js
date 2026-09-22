@@ -94,7 +94,7 @@ module.exports = {
                 }
             }
         });
-        let msg = `${fighter.icon}\nNom : **${fighter.name}**\nJoueur : **${user.name}**\n${modifiersText}`;
+        let msg = `${fighter.icon}\nNom : **${fighter.name}**\nJoueur : **${user.name}**\nVictoires : **${fighter.wins ?? 0}**\nDéfaites : **${fighter.losses ?? 0}**\n${modifiersText}`;
         if (combatInfo && fighterData && fighterData.isOutOfCombat) {
             msg = "Combattant actuellement décédé ☠️\n" + msg;
         }

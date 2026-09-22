@@ -1,6 +1,7 @@
 
 const barrack = require('../source/barracks.js');
 const arena = require('./arenaManager.js');
+const eventTexts = require('./eventTexts.js');
 
 function fighterName(id) {
     return barrack.GetFighterFullNameById(id);
@@ -18,68 +19,25 @@ function renderTemplate(template, params) {
     return template.replace(/\{(\w+)\}/g, (_, key) => params[key] ?? `{${key}}`);
 }
 
-const locales = {
-    fr: {
-        movement: {
-            short: '{fighter} se déplace de {amount} vers {direction}',
-            detailed: '{fighter} se déplace de {amount} vers {direction} pour atteindre {destination}',
-        },
-        attack: {
-            short: '{attacker} attaque {target} pour infliger {amount} dégâts',
-            detailed: '{attacker} attaque {target} pour infliger {amount} dégâts via {modifier}',
-            missed: '{attacker} rate son attaque sur {target}',
-        },
-        damageReceived: {
-            short: '{target} se prend {amount} dégâts par {attacker}',
-            detailed: '{target} se prend {amount} dégâts par {attacker} ({reason})',
-        },
-        outOfCombat: {
-            short: '{fighter} est décédé',
-            detailed: '{fighter} est décédé à cause d\'un manque de PV',
-        },
-        healthLoss: {
-            short: '{fighter} perd {amount} PV',
-            detailed: '{fighter} a perdu {amount} PV ({modifier}) et n\'en a plus que {currentHealth}',
-        },
-        unknown: {
-            short: 'Événement inconnu',
-            detailed: 'Événement inconnu : {eventType}',
-        },
-    },
-    en: {
-        movement: {
-            short: '{fighter} moves {amount} toward {direction}',
-            detailed: '{fighter} moves {amount} toward {direction} to reach {destination}',
-        },
-        attack: {
-            short: '{attacker} attacks {target} for {amount} damage',
-            detailed: '{attacker} attacks {target} for {amount} damage via {modifier}',
-            missed: '{attacker} misses {target}',
-        },
-        damageReceived: {
-            short: '{target} takes {amount} damage from {attacker}',
-            detailed: '{target} takes {amount} damage from {attacker} ({reason})',
-        },
-        outOfCombat: {
-            short: '{fighter} is dead',
-            detailed: '{fighter} is dead from lack of health',
-        },
-        healthLoss: {
-            short: '{fighter} loses {amount} HP',
-            detailed: '{fighter} loses {amount} HP ({modifier}) and now has {currentHealth}',
-        },
-        unknown: {
-            short: 'Unknown event',
-            detailed: 'Unknown event: {eventType}',
-        },
-    },
-};
-
 const formatters = {
+    beginningOfCombat: {
+        description: 'Beginning of combat',
+        format: (event, localeName = 'fr', mode = 'short') => {
+            const texts = eventTexts.beginningOfCombat[localeName] ?? eventTexts.beginningOfCombat.fr;
+            return renderTemplate(mode === 'detailed' ? texts.detailed : texts.short, event);
+        },
+    },
+    beginningOfTurn: {
+        description: 'Beginning of turn',
+        format: (event, localeName = 'fr', mode = 'short') => {
+            const texts = eventTexts.beginningOfTurn[localeName] ?? eventTexts.beginningOfTurn.fr;
+            return renderTemplate(mode === 'detailed' ? texts.detailed : texts.short, event);
+        },
+    },
     moveInDirection: {
         description: 'Movement',
         format: ({ target, amount, direction, finalTarget }, localeName = 'fr', mode = 'short') => {
-            const locale = locales[localeName] ?? locales.fr;
+            const texts = eventTexts.movement[localeName] ?? eventTexts.movement.fr;
             const params = {
                 fighter: fighterName(target),
                 amount,
@@ -87,7 +45,7 @@ const formatters = {
                 destination: fighterName(finalTarget),
             };
             return renderTemplate(
-                mode === 'detailed' ? locale.movement.detailed : locale.movement.short,
+                mode === 'detailed' ? texts.detailed : texts.short,
                 params,
             );
         },
@@ -95,7 +53,7 @@ const formatters = {
     sendDamage: {
         description: 'Attack',
         format: ({ target, finalTarget, amount, isMissed, modifierId }, localeName = 'fr', mode = 'short') => {
-            const locale = locales[localeName] ?? locales.fr;
+            const texts = eventTexts.attack[localeName] ?? eventTexts.attack.fr;
             const params = {
                 attacker: fighterName(target),
                 target: fighterName(finalTarget),
@@ -104,11 +62,11 @@ const formatters = {
             };
 
             if (isMissed) {
-                return renderTemplate(locale.attack.missed, params);
+                return renderTemplate(texts.missed, params);
             }
 
             return renderTemplate(
-                mode === 'detailed' ? locale.attack.detailed : locale.attack.short,
+                mode === 'detailed' ? texts.detailed : texts.short,
                 params,
             );
         },
@@ -116,7 +74,7 @@ const formatters = {
     receiveDamage: {
         description: 'Damage received',
         format: ({ target, author, amount, reason }, localeName = 'fr', mode = 'short') => {
-            const locale = locales[localeName] ?? locales.fr;
+            const texts = eventTexts.damageReceived[localeName] ?? eventTexts.damageReceived.fr;
             const params = {
                 target: fighterName(target),
                 attacker: fighterName(author),
@@ -125,7 +83,7 @@ const formatters = {
             };
 
             return renderTemplate(
-                mode === 'detailed' ? locale.damageReceived.detailed : locale.damageReceived.short,
+                mode === 'detailed' ? texts.detailed : texts.short,
                 params,
             );
         },
@@ -133,25 +91,25 @@ const formatters = {
     outOfCombat: {
         description: 'Out of combat',
         format: ({ target, reason }, localeName = 'fr', mode = 'short') => {
-            const locale = locales[localeName] ?? locales.fr;
+            const texts = eventTexts.outOfCombat[localeName] ?? eventTexts.outOfCombat.fr;
             const params = {
                 fighter: fighterName(target),
             };
 
             if (reason === 'notEnoughHealth') {
                 return renderTemplate(
-                    mode === 'detailed' ? locale.outOfCombat.detailed : locale.outOfCombat.short,
+                    mode === 'detailed' ? texts.detailed : texts.short,
                     params,
                 );
             }
 
-            return renderTemplate(locale.outOfCombat.short, params);
+            return renderTemplate(texts.short, params);
         },
     },
     healthLoss: {
         description: 'Health lost',
         format: ({ target, amount, modifierId }, localeName = 'fr', mode = 'short') => {
-            const locale = locales[localeName] ?? locales.fr;
+            const texts = eventTexts.healthLoss[localeName] ?? eventTexts.healthLoss.fr;
             const targetFighterId = target;
             const params = {
                 fighter: fighterName(targetFighterId),
@@ -161,7 +119,7 @@ const formatters = {
             };
 
             return renderTemplate(
-                mode === 'detailed' ? locale.healthLoss.detailed : locale.healthLoss.short,
+                mode === 'detailed' ? texts.detailed : texts.short,
                 params,
             );
         },
@@ -169,13 +127,13 @@ const formatters = {
 };
 
 module.exports = {
-    locales,
+    locales: eventTexts,
     GetEventText(event, localeName = 'fr', mode = 'short') {
         try {
             const formatter = formatters[event.type];
             if (!formatter) {
-                const locale = locales[localeName] ?? locales.fr;
-                const template = mode === 'detailed' ? locale.unknown.detailed : locale.unknown.short;
+                const texts = eventTexts.unknown[localeName] ?? eventTexts.unknown.fr;
+                const template = mode === 'detailed' ? texts.detailed : texts.short;
                 return renderTemplate(template, { eventType: event?.type ?? 'unknown' });
             }
             return formatter.format(event, localeName, mode);

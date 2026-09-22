@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { maxFightersPerUser } = require('../../settings.json');
 
 module.exports = {
     category: 'kingdominion',
@@ -38,6 +39,10 @@ module.exports = {
             return;
         }
         const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
+        if (user.id !== 0 && barracks.GetFightersForUser(user.id).length >= maxFightersPerUser) {
+            await interaction.editReply({ content: `Tu as déjà atteint la limite de ${maxFightersPerUser} combattant.` });
+            return;
+        }
         const newFighter = barracks.CreateFighter(fighterName, icon, user.id);
         await interaction.editReply({ content: `Tu as un nouveau combattant: ${newFighter.icon} ${newFighter.name}` });
     },
