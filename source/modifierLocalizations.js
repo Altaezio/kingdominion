@@ -7,6 +7,22 @@ const texts = {
         name: { fr: 'Attaque simple', en: 'Simple attack' },
         description: { fr: 'Attaque de base au corps à corps', en: 'Basic melee attack' },
     },
+    lanceAttack: {
+        name: { fr: 'Coup de lance', en: 'Lance thrust' },
+        description: { fr: 'Attaque un ennemi à deux cases avec une lance', en: 'Attacks one enemy up to two tiles away with a lance' },
+    },
+    spinAttack: {
+        name: { fr: 'Attaque tournoyante', en: 'Spin attack' },
+        description: { fr: 'Attaque tous les ennemis proches', en: 'Attacks all nearby enemies' },
+    },
+    bowShoot: {
+        name: { fr: 'Tir à l’arc', en: 'Bow shot' },
+        description: { fr: 'Attaque un ennemi à distance', en: 'Attacks one enemy at range' },
+    },
+    dodge: {
+        name: { fr: 'Esquive', en: 'Dodge' },
+        description: { fr: 'Peut éviter une attaque reçue', en: 'Can avoid an incoming attack' },
+    },
     simpleBishopMove: {
         name: { fr: 'Mouvement diagonal simple', en: 'Simple diagonal movement' },
         description: { fr: 'Déplacement d\'une case en diagonale', en: 'Move one tile diagonally' },
@@ -18,6 +34,10 @@ const texts = {
     vision: {
         name: { fr: 'Vision', en: 'Vision' },
         description: { fr: 'Permet de voir tous les combattants ennemis sur la carte', en: 'Allows seeing all enemy fighters on the map' },
+    },
+    dash: {
+        name: { fr: 'Ruée', en: 'Dash' },
+        description: { fr: 'Se déplace de deux cases dans une direction (recharge de 3 tours)', en: 'Moves two tiles in one direction (3-turn cooldown)' },
     },
 };
 

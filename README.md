@@ -38,10 +38,13 @@ You might want it to be deployed as a guild command in a private guild.
 
 ### Ideas for making modifier authoring easier
 
-- Add a `npm run create-modifier -- <id> <type>` generator that creates the module and localization entry together.
 - Define shared event and command schemas so modifier contracts and return shapes are easier to discover and validate.
 - Add focused tests for each modifier's commands and event effects, using seeded randomness where needed.
 - Add separate action, passive, and movement templates; those modifier types have different hooks and behavior requirements.
+
+### Generating a modifier
+
+Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a type of `action`, `passive`, or `move`. The generator creates a modifier module, placeholder French and English translations, and a starter test in `tests/`. Action and move modifiers receive a `GetCommand` stub that throws until its behavior is implemented.
 
 # TODOs:
 -[x] have access to current fight data
@@ -51,11 +54,12 @@ You might want it to be deployed as a guild command in a private guild.
 -[x] Tags
 -[x] Seed (optional `/test-combat seed:` for reproducible test fights)
 -[x] Localized mod description
--[] Mod esquive
--[] Mod tir à l'arc
--[] Mod dash
--[] Mod spin attack
--[] Mod lance
+-[x] solve inconsitency betwenn id modifierId and type for mod and events !!
+-[x] Mod esquive
+-[x] Mod tir à l'arc
+-[x] Mod spin attack
+-[x] Mod lance
+-[x] Mod dash
 
 ## Later
 -[] Separate game logic from visualization (engine vs renderer)

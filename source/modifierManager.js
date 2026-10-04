@@ -15,16 +15,16 @@ const modifierLocalizations = require('./modifierLocalizations.js');
 // commands create events
 
 // events are going through all the modifiers of the fighter before going through all the modifiers of the target of the event
-// events have 3 timing : before, during
+// events have 2 timing : before, during
 // events can have consequences as new events when finishing resolving
 // these consequences will resolve before the next timing of the main event
 // events are added and resolved as a stack
 
 // the event itself should look if the author is outofcombat or not
-// othewise an event in the stack will resolve
+// otherwise an event in the stack will resolve
 
 // all events are passed through all fighters so they can react if they want
-// the order is always the target and then the others
+// the order is always the targets and then the others
 
 module.exports = {
     loadedModifiers: undefined,

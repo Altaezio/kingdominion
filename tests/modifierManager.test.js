@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const modifierManager = require('./modifierManager.js');
-const modifierLocalizations = require('./modifierLocalizations.js');
+const modifierManager = require('../source/modifierManager.js');
+const modifierLocalizations = require('../source/modifierLocalizations.js');
 
 test('all loaded modifiers have localized names and descriptions', () => {
     const modifiers = modifierManager.GetModifiers();

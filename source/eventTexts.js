@@ -19,6 +19,16 @@ module.exports = {
             detailed: 'The turn begins',
         },
     },
+    beginningOfYourTurn: {
+        fr: {
+            short: 'C’est au tour de {fighter}',
+            detailed: 'C’est au tour de {fighter}',
+        },
+        en: {
+            short: 'It is {fighter}’s turn',
+            detailed: 'It is {fighter}’s turn',
+        },
+    },
     movement: {
         fr: {
             short: '{fighter} se déplace de {amount} vers {direction}',

@@ -1,9 +1,9 @@
 const createSingleTargetAttack = require('../../modifierHelpers/createSingleTargetAttack.js');
 
 module.exports = createSingleTargetAttack({
-    id: 'simpleAttack',
-    damage: 5,
-    reachMin: 1,
-    reachMax: 1,
-    chanceToConnect: 0.85,
+    id: 'lanceAttack',
+    damage: 4,
+    reachMin: 2,
+    reachMax: 2,
+    chanceToConnect: 0.75,
 });

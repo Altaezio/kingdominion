@@ -25,8 +25,8 @@ module.exports = {
     },
 
     ProcessEvent(barrack, fighterId, arenaManager, event) {
-        if (event.type === 'receiveDamage' &&
-            event.target === fighterId &&
+        if (event.id === 'receiveDamage' &&
+            event.targets.includes(fighterId) &&
             event.timing === 'during'
         ) {
             console.assert(event.hasOwnProperty('amount'));
@@ -44,9 +44,10 @@ module.exports = {
 
                 if (fighterData.modifierData[this.id].currentHealth <= 0) {
                     const lostEvent = {
+                        id: 'outOfCombat',
                         modifierId: this.id,
-                        type: 'outOfCombat',
-                        target: fighterId,
+                        executor: fighterId,
+                        targets: [fighterId],
                         author: fighterId,
                         reason: 'notEnoughHealth'
                     };
@@ -54,18 +55,19 @@ module.exports = {
                 }
 
                 const healthLoss = {
+                    id: 'healthLoss',
                     modifierId: this.id,
-                    type: 'healthLoss',
-                    target: fighterId,
+                    executor: fighterId,
+                    targets: [fighterId],
                     author: fighterId,
                     amount: event.amount,
                 };
                 event.consequences.push(healthLoss);
             }
         }
-        else if (event.type === 'outOfCombat' &&
+        else if (event.id === 'outOfCombat' &&
             event.timing === 'during' &&
-            event.target === fighterId
+            event.targets.includes(fighterId)
         ) {
             arenaManager.GetArena().fighterData[fighterId].isOutOfCombat = true;
         }

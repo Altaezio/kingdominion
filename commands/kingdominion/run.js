@@ -257,7 +257,7 @@ module.exports = {
         if (turnObject.number === 0) {
             await arenaManager.Log(logText('combatBeginning'), true, channel, undefined, locale);
             const beginningOfCombatEvent = {
-                type: 'beginningOfCombat'
+                id: 'beginningOfCombat'
             };
             eventStack.push(beginningOfCombatEvent);
             await this.ResolveEventStack(eventStack, turnObject.turnOrder, 0, channel);
@@ -270,7 +270,7 @@ module.exports = {
 
         await arenaManager.Log(logText('beginningOfTurn'), true, undefined, undefined, locale);
         const beginningOfTurnEvent = {
-            type: 'beginningOfTurn'
+            id: 'beginningOfTurn'
         }
         eventStack.push(beginningOfTurnEvent);
         await this.ResolveEventStack(eventStack, turnObject.turnOrder, 0, channel);
@@ -290,6 +290,12 @@ module.exports = {
                 continue;
 
             turnObject.currentTurnTakerInd = i;
+            eventStack.push({
+                id: 'beginningOfYourTurn',
+                executor: fighterId
+            });
+            await this.ResolveEventStack(eventStack, turnObject.turnOrder, i, channel);
+
             await arenaManager.Log(logText('action', { fighter: barrack.GetFighterFullName(fighter) }), true, channel, undefined, locale);
 
             // Gather what info they want
@@ -368,7 +374,7 @@ module.exports = {
             });
             console.assert(commandInd >= 0, 'A command was not found');
             const pickedCommand = commands[commandInd];
-            console.debug('Picked command :', pickedCommand);
+            // console.debug('Picked command :', pickedCommand);
 
             eventStack.push(pickedCommand.resultingEvent);
 
@@ -391,6 +397,7 @@ module.exports = {
         const arenaManager = require('../../source/arenaManager.js');
         const modifierManager = require('../../source/modifierManager.js');
         const eventTextConstructor = require('../../source/eventTextConstructor.js');
+        const eventUtils = require('../../source/eventUtils.js');
 
         const fighterHolder = barrack.GetFighterHolder();
         const arena = arenaManager.GetArena();
@@ -399,26 +406,32 @@ module.exports = {
         let failSafe = 1000;
         while (eventStack.length > 0 && failSafe > 0) {
             failSafe--;
-            const event = eventStack.pop();
+            const event = eventUtils.ValidateEvent(eventStack.pop());
 
             if (!event.hasOwnProperty('timing'))
                 event.timing = 'before';
+            if (!Array.isArray(event.consequences))
+                event.consequences = [];
 
-            console.log('Process event', event.type);
+            console.log('Process event', event.id);
 
-            // first the target if any
-            if (event.hasOwnProperty('target')) {
-                const fighterId = event.target;
+            const fighterIdsToProcess = [...new Set([
+                ...(event.executor === undefined ? [] : [event.executor]),
+                ...event.targets,
+            ])];
+
+            // Process the executor first, then the affected fighters.
+            fighterIdsToProcess.forEach(fighterId => {
                 arena.fighterData[fighterId].modifierIds.forEach(modId => {
                     const mod = modifierManager.GetModifier(modId);
-                    mod.ProcessEvent(barrack, event.target, arenaManager, event);
+                    mod.ProcessEvent(barrack, fighterId, arenaManager, event);
                 });
-            }
+            });
 
             // then all the others
             for (let i = 0; i < fightersInOrder.length; i++) {
                 let otherFighterId = fightersInOrder[(turnTakerInd + i) % fightersInOrder.length];
-                if (!event.hasOwnProperty('target') || otherFighterId != event.target) {
+                if (!fighterIdsToProcess.includes(otherFighterId)) {
                     arena.fighterData[otherFighterId].modifierIds.forEach(modId => {
                         const mod = modifierManager.GetModifier(modId);
                         mod.ProcessEvent(barrack, otherFighterId, arenaManager, event);

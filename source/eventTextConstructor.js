@@ -35,15 +35,24 @@ const formatters = {
             return renderTemplate(mode === 'detailed' ? texts.detailed : texts.short, event);
         },
     },
+    beginningOfYourTurn: {
+        description: 'Beginning of fighter turn',
+        format: ({ executor }, localeName = 'fr', mode = 'short') => {
+            const texts = eventTexts.beginningOfYourTurn[localeName] ?? eventTexts.beginningOfYourTurn.fr;
+            return renderTemplate(mode === 'detailed' ? texts.detailed : texts.short, {
+                fighter: fighterName(executor),
+            });
+        },
+    },
     moveInDirection: {
         description: 'Movement',
-        format: ({ target, amount, direction, finalTarget }, localeName = 'fr', mode = 'short') => {
+        format: ({ executor, amount, direction, destination }, localeName = 'fr', mode = 'short') => {
             const texts = eventTexts.movement[localeName] ?? eventTexts.movement.fr;
             const params = {
-                fighter: fighterName(target),
+                fighter: fighterName(executor),
                 amount,
                 direction,
-                destination: fighterName(finalTarget),
+                destination: fighterName(destination),
             };
             return renderTemplate(
                 mode === 'detailed' ? texts.detailed : texts.short,
@@ -53,11 +62,11 @@ const formatters = {
     },
     sendDamage: {
         description: 'Attack',
-        format: ({ target, finalTarget, amount, isMissed, modifierId }, localeName = 'fr', mode = 'short') => {
+        format: ({ targets, author, amount, isMissed, modifierId }, localeName = 'fr', mode = 'short') => {
             const texts = eventTexts.attack[localeName] ?? eventTexts.attack.fr;
             const params = {
-                attacker: fighterName(target),
-                target: fighterName(finalTarget),
+                attacker: fighterName(author),
+                target: targets.map(fighterName).join(', '),
                 amount,
                 modifier: modifierId ? modifierLocalizations.GetName(modifierId, localeName) : 'base',
             };
@@ -74,10 +83,10 @@ const formatters = {
     },
     receiveDamage: {
         description: 'Damage received',
-        format: ({ target, author, amount, reason }, localeName = 'fr', mode = 'short') => {
+        format: ({ targets, author, amount, reason }, localeName = 'fr', mode = 'short') => {
             const texts = eventTexts.damageReceived[localeName] ?? eventTexts.damageReceived.fr;
             const params = {
-                target: fighterName(target),
+                target: targets.map(fighterName).join(', '),
                 attacker: fighterName(author),
                 amount,
                 reason: reason ?? 'attaque',
@@ -91,10 +100,10 @@ const formatters = {
     },
     outOfCombat: {
         description: 'Out of combat',
-        format: ({ target, reason }, localeName = 'fr', mode = 'short') => {
+        format: ({ targets, reason }, localeName = 'fr', mode = 'short') => {
             const texts = eventTexts.outOfCombat[localeName] ?? eventTexts.outOfCombat.fr;
             const params = {
-                fighter: fighterName(target),
+                fighter: targets.map(fighterName).join(', '),
             };
 
             if (reason === 'notEnoughHealth') {
@@ -109,9 +118,9 @@ const formatters = {
     },
     healthLoss: {
         description: 'Health lost',
-        format: ({ target, amount, modifierId }, localeName = 'fr', mode = 'short') => {
+        format: ({ targets, amount, modifierId }, localeName = 'fr', mode = 'short') => {
             const texts = eventTexts.healthLoss[localeName] ?? eventTexts.healthLoss.fr;
-            const targetFighterId = target;
+            const targetFighterId = targets[0];
             const params = {
                 fighter: fighterName(targetFighterId),
                 amount,
@@ -131,11 +140,11 @@ module.exports = {
     locales: eventTexts,
     GetEventText(event, localeName = 'fr', mode = 'short') {
         try {
-            const formatter = formatters[event.type];
+            const formatter = formatters[event.id];
             if (!formatter) {
                 const texts = eventTexts.unknown[localeName] ?? eventTexts.unknown.fr;
                 const template = mode === 'detailed' ? texts.detailed : texts.short;
-                return renderTemplate(template, { eventType: event?.type ?? 'unknown' });
+                return renderTemplate(template, { eventType: event?.id ?? 'unknown' });
             }
             return formatter.format(event, localeName, mode);
         }
