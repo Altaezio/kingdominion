@@ -19,6 +19,6 @@ module.exports = {
 
         const channel = interaction.client.channels.cache.get(testChannelId);
         const seed = interaction.options.getString('seed');
-        main.RunCombat(channel, seed);
+        main.RunCombat(channel, seed, { persistFighterStats: false });
     }
 };

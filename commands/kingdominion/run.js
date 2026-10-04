@@ -67,7 +67,7 @@ module.exports = {
         });
     },
 
-    async RunCombat(channel, seed) {
+    async RunCombat(channel, seed, { persistFighterStats = true } = {}) {
         const barrack = require('../../source/barracks.js');
         const arenaManager = require('../../source/arenaManager.js');
         const modifierManager = require('../../source/modifierManager.js');
@@ -149,7 +149,7 @@ module.exports = {
                     fighterPositions[id] = position;
                 })
                 const fightersOnMapIds = Object.keys(fighterPositions);
-                console.debug('fighters on map', fightersOnMapIds);
+                // console.debug('fighters on map', fightersOnMapIds);
 
                 if (arena.state === 'battling') {
                     arena.turn['fightersOnMapIds'] = fightersOnMapIds;
@@ -180,7 +180,8 @@ module.exports = {
                         let msg;
                         if (nTeams === 1) {
                             const winningTeamId = Object.keys(fightersPerTeam)[0];
-                            barrack.RecordMatchResult(Object.keys(arena.fighterData), Number(winningTeamId));
+                            if (persistFighterStats)
+                                barrack.RecordMatchResult(Object.keys(arena.fighterData), Number(winningTeamId));
                             // WINNER
                             if (fightersPerTeam[0] == 1) {
                                 msg = logText('winner', { fighter: barrack.GetFighterFullName(fighterAlive) });
@@ -202,7 +203,8 @@ module.exports = {
                     }
                 }
 
-                barrack.SaveFighters();
+                if (persistFighterStats)
+                    barrack.SaveFighters();
                 arenaManager.SaveArena('currentArena');
             }
             catch (error) {
@@ -304,14 +306,14 @@ module.exports = {
             arena.fighterData[fighterId].modifierIds.forEach(modId => {
                 modifierManager.GetModifier(modId).GatherWantedInfo(info);
             });
-            console.debug('Wanted info:', info);
+            // console.debug('Wanted info:', info);
 
             // Gather the info wanted
             console.log('Gather actual info');
             arena.fighterData[fighterId].modifierIds.forEach(modId => {
                 modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arenaManager, info);
             });
-            console.debug('Gathered info:', info);
+            // console.debug('Gathered info:', info);
 
             // Get the commands and instructions
             console.log('Get the commands and instructions');
@@ -330,8 +332,8 @@ module.exports = {
                     }
                 }
             });
-            console.debug('Commands after adding actions :', commands);
-            console.debug('Instructions :', instructions);
+            // console.debug('Commands after adding actions :', commands);
+            // console.debug('Instructions :', instructions);
 
             // Get the move commands based on the instructions
             console.log('Get move commands');
@@ -413,7 +415,7 @@ module.exports = {
             if (!Array.isArray(event.consequences))
                 event.consequences = [];
 
-            console.log('Process event', event.id);
+            // console.log('Process event', event.id);
 
             const fighterIdsToProcess = [...new Set([
                 ...(event.executor === undefined ? [] : [event.executor]),

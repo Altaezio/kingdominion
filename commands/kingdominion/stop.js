@@ -20,10 +20,10 @@ module.exports = {
         const arena = arenaManager.GetArena();
 
         if (!stopAll) {
+            const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the current fight`);
 
             arenaManager.SetState('finished');
-            const currentTime = new Date();
             arenaManager.SaveArena(`${currentTime.toLocaleDateString('fr-FR').replaceAll('/', '-')}_currentArena`);
             arenaManager.ResetArena();
             await interaction.editReply({ content: Text(interaction, 'stop', 'stopped') });
