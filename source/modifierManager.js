@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const tagManager = require('./tagManager.js');
+const modifierLocalizations = require('./modifierLocalizations.js');
 
 // ACTION are modifiers fighters can use to do something
 // PASSIVE are modifiers always there
@@ -31,18 +32,37 @@ module.exports = {
     LoadModifiers() {
         const modifierDirPath = path.join(__dirname, 'modifier');
         const modifierFiles = fs.readdirSync(modifierDirPath).filter(file => file.endsWith('.js'));
-        this.loadedModifiers = {};
+        const modifiers = [];
         for (const file of modifierFiles) {
             const filePath = path.join(modifierDirPath, file);
             const modifier = require(filePath);
 
             if (modifier.hasOwnProperty('id')) {
-                tagManager.ValidateModifier(modifier);
-                this.loadedModifiers[modifier.id] = modifier;
+                modifiers.push(modifier);
             } else {
                 console.warn(`The modifier at ${filePath} is missing an id`);
             }
         }
+        this.loadedModifiers = this.BuildModifierRegistry(modifiers);
+    },
+
+    BuildModifierRegistry(modifiers) {
+        const registry = Object.create(null);
+        for (const modifier of modifiers) {
+            if (typeof modifier.id !== 'string' || modifier.id.length === 0)
+                throw new Error('Modifier is missing a valid id');
+            if (Object.prototype.hasOwnProperty.call(registry, modifier.id))
+                throw new Error(`Duplicate modifier id: ${modifier.id}`);
+            if (Object.prototype.hasOwnProperty.call(modifier, 'name'))
+                throw new Error(`Modifier ${modifier.id} must not define a name`);
+            if (Object.prototype.hasOwnProperty.call(modifier, 'description'))
+                throw new Error(`Modifier ${modifier.id} must not define a description`);
+
+            tagManager.ValidateModifier(modifier);
+            modifierLocalizations.ValidateModifierLocalization(modifier.id);
+            registry[modifier.id] = modifier;
+        }
+        return registry;
     },
 
     GetModifiers() {
@@ -52,25 +72,7 @@ module.exports = {
     },
 
     GetModifier(id) {
-        if (this.loadedModifiers !== undefined) {
-            return this.loadedModifiers[id];
-        }
-        else {
-            const modifierDirPath = path.join(__dirname, 'modifier');
-            const modifierFiles = fs.readdirSync(modifierDirPath).filter(file => file.endsWith('.js'));
-            for (const file of modifierFiles) {
-                const filePath = path.join(modifierDirPath, file);
-                const modifier = require(filePath);
-
-                if (!modifier.hasOwnProperty('id')) {
-                    console.warn(`The modifier at ${filePath} is missing an id`);
-                } else if (modifier.id === id) {
-                    return modifier;
-                }
-            }
-        }
-        console.error(`Modifier ${id} not found`);
-        return undefined;
+        return this.GetModifiers()[id];
     },
 
     HasModifierTag(modifierId, tagId) {

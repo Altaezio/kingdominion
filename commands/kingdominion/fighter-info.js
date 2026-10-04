@@ -22,6 +22,7 @@ module.exports = {
         const arenaManager = require('../../source/arenaManager.js');
         const userHandler = require(`../../source/userHandler.js`);
         const modifierManager = require(`../../source/modifierManager.js`);
+        const modifierLocalizations = require('../../source/modifierLocalizations.js');
         const { Text } = require('../../source/commandLocalizations.js');
 
         const fighterName = interaction.options.getString('name');
@@ -71,7 +72,7 @@ module.exports = {
 
         modifierIds.forEach(modId => {
             const mod = modifiers[modId];
-            modifiersText = modifiersText.concat(`\n - **${mod.name}** (*${mod.type}*), ${mod.description}.`);
+            modifiersText = modifiersText.concat(`\n - **${modifierLocalizations.GetName(mod.id, interaction.locale)}** (*${mod.type}*), ${modifierLocalizations.GetDescription(mod.id, interaction.locale)}.`);
             if ((combatInfo && fighterData && fighterData.modifierData.hasOwnProperty(mod.id) ||
                 !combatInfo && fighter.baseModifierData.hasOwnProperty(mod.id))) {
 

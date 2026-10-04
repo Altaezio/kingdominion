@@ -1,5 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { locale } = require('../settings.json');
+const modifierLocalizations = require('./modifierLocalizations.js');
 const {
 	ActionRowBuilder,
 	StringSelectMenuBuilder,
@@ -74,9 +76,9 @@ module.exports = {
 		const options = survey.modifierIds.map(modifierId => {
 			const modifier = modifierManager.GetModifier(modifierId);
 			return new StringSelectMenuOptionBuilder()
-				.setLabel(modifier.name)
+				.setLabel(modifierLocalizations.GetName(modifier.id, locale))
 				.setValue(modifier.id)
-				.setDescription(modifier.description.slice(0, 100));
+				.setDescription(modifierLocalizations.GetDescription(modifier.id, locale).slice(0, 100));
 		});
 		const menu = new StringSelectMenuBuilder()
 			.setCustomId(`modifier-survey:${survey.id}`)
@@ -87,7 +89,7 @@ module.exports = {
 			.addOptions(options);
 		const voteCounts = getVoteCounts(survey);
 		const description = survey.modifierIds
-			.map(modifierId => `${modifierManager.GetModifier(modifierId).name}: ${voteCounts[modifierId]} vote(s)`)
+			.map(modifierId => `${modifierLocalizations.GetName(modifierId, locale)}: ${voteCounts[modifierId]} vote(s)`)
 			.join('\n');
 		return {
 			content: survey.status === 'open'

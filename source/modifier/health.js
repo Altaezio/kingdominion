@@ -2,9 +2,7 @@ const MAX_HEALTH = 10;
 
 module.exports = {
     id: 'health',
-    name: 'Vie',
     type: 'passive',
-    description: 'Ce qui fait tenir debout',
     tags: ['health'],
     defaultData: {
         currentHealth: 10

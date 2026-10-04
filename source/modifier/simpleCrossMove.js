@@ -1,9 +1,7 @@
 
 module.exports = {
     id: 'simpleCrossMove',
-    name: 'Movement simple',
     type: 'move',
-    description: 'Déplacement à 4 directions d\'une case',
     tags: ['movement'],
 
 

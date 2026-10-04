@@ -44,6 +44,7 @@ module.exports = {
         const userHandler = require('../source/userHandler.js');
         const barracks = require('../source/barracks.js');
         const modifierManager = require('../source/modifierManager.js');
+        const modifierLocalizations = require('../source/modifierLocalizations.js');
         const { Text } = require('../source/commandLocalizations.js');
         const surveyId = interaction.customId.split(':')[1];
         const survey = surveyManager.GetCurrentSurvey();
@@ -75,7 +76,7 @@ module.exports = {
         }
 
         await interaction.reply({
-            content: Text(interaction, 'survey-vote', 'voteRecorded', { name: modifierManager.GetModifier(modifierId).name }),
+            content: Text(interaction, 'survey-vote', 'voteRecorded', { name: modifierLocalizations.GetName(modifierId, interaction.locale) }),
             flags: MessageFlags.Ephemeral,
         });
         const updatedSurvey = surveyManager.GetCurrentSurvey();

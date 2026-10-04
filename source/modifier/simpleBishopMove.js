@@ -1,8 +1,6 @@
 module.exports = {
     id: 'simpleBishopMove',
-    name: 'Mouvement diagonal simple',
     type: 'move',
-    description: 'Déplacement d\'une case en diagonale',
     tags: ['movement'],
 
     GatherWantedInfo(info) {

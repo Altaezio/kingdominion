@@ -15,6 +15,7 @@ module.exports = {
 
 		const modifierManager = require('../../source/modifierManager.js');
 		const tagManager = require('../../source/tagManager.js');
+		const modifierLocalizations = require('../../source/modifierLocalizations.js');
 		const { Text } = require('../../source/commandLocalizations.js');
 		const modifierId = interaction.options.getString('modifier');
 		const modifier = modifierManager.GetModifier(modifierId);
@@ -25,10 +26,10 @@ module.exports = {
 
 		const directTags = modifier.tags ?? [];
 		const allTags = [...tagManager.GetAllTags(directTags)];
-		let description = `**${modifier.name}**\n`;
+		let description = `**${modifierLocalizations.GetName(modifier.id, interaction.locale)}**\n`;
 		description += `${Text(interaction, 'modifier-info', 'id')} : \`${modifier.id}\`\n`;
 		description += `${Text(interaction, 'modifier-info', 'type')} : **${modifier.type}**\n`;
-		description += `${Text(interaction, 'modifier-info', 'description')} : ${modifier.description}`;
+		description += `${Text(interaction, 'modifier-info', 'description')} : ${modifierLocalizations.GetDescription(modifier.id, interaction.locale)}`;
 		description += `\n${Text(interaction, 'modifier-info', 'tags')} : ${allTags.length > 0 ? allTags.map(tag => `\`${tag}\``).join(', ') : Text(interaction, 'modifier-info', 'none')}`;
 
 		if (modifier.defaultData) {

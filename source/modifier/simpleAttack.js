@@ -4,9 +4,7 @@ const CHANCE_TO_CONNECT = 0.75;
 
 module.exports = {
     id: 'simpleAttack',
-    name: 'Attaque simple',
     type: 'action',
-    description: 'Attaque de base au corps à corps',
     tags: ['physical'],
 
     GatherWantedInfo(info) {

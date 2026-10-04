@@ -1,8 +1,6 @@
 module.exports = {
     id: 'vision',
-    name: 'Vision',
     type: 'passive',
-    description: 'Permet de voir tous les combattants ennemis sur la carte',
     tags: ['vision'],
 
     GatherWantedInfo(info) {

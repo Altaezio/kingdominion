@@ -2,6 +2,7 @@
 const barrack = require('../source/barracks.js');
 const arena = require('./arenaManager.js');
 const eventTexts = require('./eventTexts.js');
+const modifierLocalizations = require('./modifierLocalizations.js');
 
 function fighterName(id) {
     return barrack.GetFighterFullNameById(id);
@@ -58,7 +59,7 @@ const formatters = {
                 attacker: fighterName(target),
                 target: fighterName(finalTarget),
                 amount,
-                modifier: modifierId ?? 'base',
+                modifier: modifierId ? modifierLocalizations.GetName(modifierId, localeName) : 'base',
             };
 
             if (isMissed) {
@@ -114,7 +115,7 @@ const formatters = {
             const params = {
                 fighter: fighterName(targetFighterId),
                 amount,
-                modifier: modifierId ?? 'health',
+                modifier: modifierLocalizations.GetName(modifierId ?? 'health', localeName),
                 currentHealth: currentHealthOf(targetFighterId, modifierId),
             };
 
