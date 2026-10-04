@@ -31,16 +31,25 @@ module.exports = {
 
     LoadModifiers() {
         const modifierDirPath = path.join(__dirname, 'modifier');
-        const modifierFiles = fs.readdirSync(modifierDirPath).filter(file => file.endsWith('.js'));
+        const modifierTypes = ['action', 'passive', 'move'];
         const modifiers = [];
-        for (const file of modifierFiles) {
-            const filePath = path.join(modifierDirPath, file);
-            const modifier = require(filePath);
+        for (const type of modifierTypes) {
+            const typeDirPath = path.join(modifierDirPath, type);
+            if (!fs.existsSync(typeDirPath))
+                continue;
 
-            if (modifier.hasOwnProperty('id')) {
+            const modifierFiles = fs.readdirSync(typeDirPath).filter(file => file.endsWith('.js'));
+            for (const file of modifierFiles) {
+                const filePath = path.join(typeDirPath, file);
+                const modifier = require(filePath);
+
+                if (!modifier.hasOwnProperty('id')) {
+                    console.warn(`The modifier at ${filePath} is missing an id`);
+                    continue;
+                }
+                if (modifier.type !== type)
+                    throw new Error(`Modifier ${modifier.id} has type '${modifier.type}' but is in the '${type}' directory`);
                 modifiers.push(modifier);
-            } else {
-                console.warn(`The modifier at ${filePath} is missing an id`);
             }
         }
         this.loadedModifiers = this.BuildModifierRegistry(modifiers);
@@ -57,6 +66,8 @@ module.exports = {
                 throw new Error(`Modifier ${modifier.id} must not define a name`);
             if (Object.prototype.hasOwnProperty.call(modifier, 'description'))
                 throw new Error(`Modifier ${modifier.id} must not define a description`);
+            if (!['action', 'passive', 'move'].includes(modifier.type))
+                throw new Error(`Modifier ${modifier.id} has an invalid type: ${modifier.type}`);
 
             tagManager.ValidateModifier(modifier);
             modifierLocalizations.ValidateModifierLocalization(modifier.id);

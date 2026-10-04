@@ -27,6 +27,22 @@ If you made a change or added a new command, you can use the command `/reload [n
 Careful, this command is currently setup as public and anyone can use it.  
 You might want it to be deployed as a guild command in a private guild.
 
+## Adding a modifier
+
+1. Copy [`source/templates/modifier.js.template`](./source/templates/modifier.js.template) to `source/modifier/<type>/<modifier-id>.js`, where `<type>` is `action`, `passive`, or `move`.
+2. Replace `replaceWithUniqueModifierId` with the same unique ID used for the filename.
+3. Set the modifier's `type` to match its containing directory. Action and move modifiers must implement `GetCommand` and return the appropriate command or instruction shape; use `source/modifier/action/simpleAttack.js` or `source/modifier/move/simpleCrossMove.js` as examples.
+4. Add the modifier's tags and implement its hooks. `GatherWantedInfo`, `GatherInfo`, and `ProcessEvent` are called by the combat engine. Add `defaultData` to initialize data at the beginning of each fight.
+5. Add `name` and `description` translations for both `fr` and `en` under the modifier ID in `source/modifierLocalizations.js`.
+6. Run `npm test`. Modifier loading validates unique IDs, tags, and translations.
+
+### Ideas for making modifier authoring easier
+
+- Add a `npm run create-modifier -- <id> <type>` generator that creates the module and localization entry together.
+- Define shared event and command schemas so modifier contracts and return shapes are easier to discover and validate.
+- Add focused tests for each modifier's commands and event effects, using seeded randomness where needed.
+- Add separate action, passive, and movement templates; those modifier types have different hooks and behavior requirements.
+
 # TODOs:
 -[x] have access to current fight data
 -[x] have daily combat with a pause in the week-end
@@ -34,7 +50,7 @@ You might want it to be deployed as a guild command in a private guild.
 -[x] Survey giving new modifiers
 -[x] Tags
 -[x] Seed (optional `/test-combat seed:` for reproducible test fights)
--[] Localized mod description
+-[x] Localized mod description
 -[] Mod esquive
 -[] Mod tir à l'arc
 -[] Mod dash
@@ -47,6 +63,7 @@ You might want it to be deployed as a guild command in a private guild.
 -[] Mod en feu
 -[] Mod fire breathing (+1 dégât et feu à l'attaque)
 -[] Mod boule de feu
+-[] Mod unit tests
 
 ## Ideas
 - map

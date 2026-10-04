@@ -1,0 +1,19 @@
+module.exports = {
+    id: 'replaceWithUniqueModifierId',
+    type: 'replaceWithTypeModifier',
+    tags: [],
+
+    // Add modifier-specific defaults here if ProcessEvent uses persistent state.
+    // defaultData: {},
+
+    GatherWantedInfo(info) {
+    },
+
+    GatherInfo(barrack, fighterId, arenaManager, info) {
+    },
+
+    ProcessEvent(barrack, fighterId, arenaManager, event) {
+    },
+
+    // Action and move modifiers must implement GetCommand with their behavior.
+};
