@@ -33,14 +33,25 @@ You might want it to be deployed as a guild command in a private guild.
 -[x] have combat statistics (win / death / kills etc)
 -[x] Survey giving new modifiers
 -[x] Tags
--[] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
--[] remove chance to hit on attack and add a dodge modifier
--[] Implement new modifiers
+-[x] Seed (optional `/test-combat seed:` for reproducible test fights)
+-[] Localized mod description
+-[] Mod esquive
+-[] Mod tir à l'arc
+-[] Mod dash
+-[] Mod spin attack
+-[] Mod lance
 
 ## Later
+-[] Separate game logic from visualization (engine vs renderer)
+-[] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
+-[] Mod en feu
+-[] Mod fire breathing (+1 dégât et feu à l'attaque)
+-[] Mod boule de feu
 
 ## Ideas
 - map
  - more things on maps
  - premade map
  - generated maps ?
+- Suggesteur de Mod
+- Level up des mods

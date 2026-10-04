@@ -52,7 +52,7 @@ module.exports = {
         if (target &&
             Math.abs(target.position.x - fighterPosition.x) + Math.abs(target.position.y - fighterPosition.y) <= REACH
         ) {
-            const attackIsMissed = Math.random() <= CHANCE_TO_CONNECT;
+            const attackIsMissed = arenaManager.Random() > CHANCE_TO_CONNECT;
             const resultingEvent = {
                 modifierId: this.id,
                 type: 'sendDamage',

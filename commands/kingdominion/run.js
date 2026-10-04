@@ -67,7 +67,7 @@ module.exports = {
         });
     },
 
-    async RunCombat(channel) {
+    async RunCombat(channel, seed) {
         const barrack = require('../../source/barracks.js');
         const arenaManager = require('../../source/arenaManager.js');
         const modifierManager = require('../../source/modifierManager.js');
@@ -113,8 +113,9 @@ module.exports = {
                     return;
                 }
 
+                const combatSeed = arenaManager.SetSeed(seed);
                 justStarted = true;
-                await arenaManager.Log(logText('combatStart'), true, channel, undefined, locale);
+                await arenaManager.Log(logText('combatStart', { seed: combatSeed }), true, channel, undefined, locale);
 
                 // give fighters positions
                 const spawnPoints = arenaManager.GetSpawnPoints(nFighters);
@@ -239,7 +240,7 @@ module.exports = {
             // Sort in order of actions
             console.assert(turnObject.hasOwnProperty('fightersOnMapIds'), 'turn object is missing fightersOnMapIds');
             let fightersInOrder = turnObject.fightersOnMapIds.toSpliced(); // copy
-            ShuffleInPlace(fightersInOrder);
+            ShuffleInPlace(fightersInOrder, () => arenaManager.Random());
             turnObject['turnOrder'] = fightersInOrder;
         }
         let fighterOrderTxt = '';
@@ -359,7 +360,7 @@ module.exports = {
             commands.forEach(command => {
                 totalWeight += command.weight;
             });
-            const pickedWeight = Math.random() * totalWeight;
+            const pickedWeight = arenaManager.Random() * totalWeight;
             totalWeight = 0;
             const commandInd = commands.findIndex(command => {
                 totalWeight += command.weight;

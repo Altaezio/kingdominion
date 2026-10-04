@@ -1,7 +1,7 @@
 const texts = {
 	paused: { fr: 'Combat déjà en pause. /pause pour le relancer ou /stop pour l\'arrêter', en: 'Combat is already paused. Use /pause to resume it or /stop to stop it' },
 	notEnoughFighters: { fr: 'Pas assez de combattants pour commencer ({count})', en: 'Not enough fighters to start ({count})' },
-	combatStart: { fr: 'Que les jeux commencent !', en: 'Let the games begin!' },
+	combatStart: { fr: 'Que les jeux commencent ! Seed : {seed}', en: 'Let the games begin! Seed: {seed}' },
 	departure: { fr: 'Départ :\n{map}', en: 'Start:\n{map}' },
 	fightersAlive: { fr: 'Combattants vivants : {fighters}', en: 'Fighters alive: {fighters}' },
 	combatBeginning: { fr: '# --- **Début du combat** ---', en: '# --- **Combat begins** ---' },

@@ -4,9 +4,9 @@ module.exports = {
         return new Promise(resolve => setTimeout(resolve, s * 1000));
     },
 
-    ShuffleInPlace(array) {
+    ShuffleInPlace(array, random = Math.random) {
         for (let i = array.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+            let j = Math.floor(random() * (i + 1)); // random index from 0 to i
 
             // swap elements array[i] and array[j]
             // we use "destructuring assignment" syntax to achieve that

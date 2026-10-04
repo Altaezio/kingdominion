@@ -96,6 +96,9 @@ const localizations = {
     },
     'test-combat': {
         description: { fr: 'Commence un combat de test', en: 'Starts a test combat' },
+        options: {
+            seed: { fr: 'Seed du combat pour le rendre reproductible', en: 'Combat seed for reproducible results' },
+        },
         responses: {
             starting: { fr: 'Démarrage d\'un combat', en: 'Starting one combat' },
         },

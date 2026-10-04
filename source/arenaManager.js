@@ -1,9 +1,37 @@
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const { emptyTile, locale } = require('../settings.json');
 const { GetLogText } = require('./logTexts.js');
 
 module.exports = {
     loadedArena: undefined,
+
+    SetSeed(seed) {
+        const arena = this.GetArena();
+        const actualSeed = seed ?? crypto.randomBytes(16).toString('hex');
+        const seedText = String(actualSeed);
+        if (seedText.length === 0)
+            throw new Error('Combat seed cannot be empty');
+
+        const seedHash = crypto.createHash('sha256').update(seedText).digest();
+        arena.seed = seedText;
+        arena.randomState = seedHash.readUInt32LE(0) || 1;
+        return seedText;
+    },
+
+    Random() {
+        const arena = this.GetArena();
+        if (!Number.isInteger(arena.randomState)) {
+            this.SetSeed(crypto.randomBytes(16).toString('hex'));
+        }
+
+        let state = arena.randomState >>> 0;
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        arena.randomState = state >>> 0;
+        return arena.randomState / 0x100000000;
+    },
 
     ArenaIsValid(arena) {
         if (!arena ||
@@ -137,7 +165,7 @@ module.exports = {
 
         const shuffle = (items) => {
             for (let index = items.length - 1; index > 0; index--) {
-                const randomIndex = Math.floor(Math.random() * (index + 1));
+                const randomIndex = Math.floor(this.Random() * (index + 1));
                 [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
             }
             return items;
@@ -315,8 +343,8 @@ module.exports = {
     GetRandomPos() {
         const arena = this.GetArena();
         let position = {};
-        position.x = Math.floor(Math.random() * arena.width);
-        position.y = Math.floor(Math.random() * arena.height);
+        position.x = Math.floor(this.Random() * arena.width);
+        position.y = Math.floor(this.Random() * arena.height);
         return position;
     },
 
