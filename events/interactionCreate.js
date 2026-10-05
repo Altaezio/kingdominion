@@ -3,6 +3,14 @@ const { Events, MessageFlags } = require('discord.js');
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
+        const guildData = require('../source/guildData.js');
+        if (!interaction.guildId) {
+            if (interaction.isRepliable())
+                await interaction.reply({ content: 'This command can only be used in a Discord server.', flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        return guildData.run(interaction.guildId, async () => {
         const { Text } = require('../source/commandLocalizations.js');
         if (interaction.isStringSelectMenu() && interaction.customId.startsWith('modifier-survey:')) {
             await this.executeModifierSurveyVote(interaction);
@@ -37,6 +45,7 @@ module.exports = {
                 await interaction.editReply({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
             }
         }
+        });
     },
 
     async executeModifierSurveyVote(interaction) {

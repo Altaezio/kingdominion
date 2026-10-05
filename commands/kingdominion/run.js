@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const fs = require('node:fs');
-const { detailedLogsChannelId, surveyChannelId, locale, maxFightersPerUser } = require('../../settings.json');
+const guildData = require('../../source/guildData.js');
 const { sleep, ShuffleInPlace } = require('../../utils.js');
 const { GetLogDescriptor } = require('../../source/logTexts.js');
 
@@ -9,7 +9,7 @@ function logText(key, values = {}) {
     return GetLogDescriptor(key, values);
 }
 
-async function StartModifierSurvey(client) {
+async function StartModifierSurvey(client, surveyChannelId) {
     const surveyManager = require('../../source/modifierSurvey.js');
     const modifierManager = require('../../source/modifierManager.js');
     const channel = client.channels.cache.get(surveyChannelId);
@@ -29,6 +29,7 @@ async function CloseModifierSurvey(client) {
     const surveyManager = require('../../source/modifierSurvey.js');
     const barracks = require('../../source/barracks.js');
     const modifierManager = require('../../source/modifierManager.js');
+    const { surveyChannelId } = guildData.getSettings();
     const survey = surveyManager.GetCurrentSurvey();
     if (!survey || survey.status !== 'open')
         return;
@@ -52,18 +53,21 @@ module.exports = {
         const { Text } = require('../../source/commandLocalizations.js');
         await interaction.reply({ content: Text(interaction, 'run', 'scheduling'), flags: MessageFlags.Ephemeral });
 
-        const channel = interaction.client.channels.cache.get(detailedLogsChannelId);
+        const guildId = guildData.getGuildId();
+        const settings = guildData.getSettings();
+        const channel = interaction.client.channels.cache.get(settings.detailedLogsChannelId ?? interaction.channelId);
+        const surveyChannelId = settings.surveyChannelId ?? interaction.channelId;
 
         // one day = one combat, only from Monday to Friday starting at 8am
-        schedule.scheduleJob('runningGame', '0 8 * * 1-5', async function () {
-            await module.exports.RunCombat(channel)
+        schedule.scheduleJob(`runningGame:${guildId}`, '0 8 * * 1-5', async function () {
+            await guildData.run(guildId, () => module.exports.RunCombat(channel));
         });
 
-        schedule.scheduleJob('startModifierSurvey', '0 10 * * 6', async function () {
-            await StartModifierSurvey(interaction.client);
+        schedule.scheduleJob(`startModifierSurvey:${guildId}`, '0 10 * * 6', async function () {
+            await guildData.run(guildId, () => StartModifierSurvey(interaction.client, surveyChannelId));
         });
-        schedule.scheduleJob('closeModifierSurvey', '0 20 * * 0', async function () {
-            await CloseModifierSurvey(interaction.client);
+        schedule.scheduleJob(`closeModifierSurvey:${guildId}`, '0 20 * * 0', async function () {
+            await guildData.run(guildId, () => CloseModifierSurvey(interaction.client));
         });
     },
 
@@ -72,6 +76,7 @@ module.exports = {
         const arenaManager = require('../../source/arenaManager.js');
         const modifierManager = require('../../source/modifierManager.js');
         const eventTextConstructor = require('../../source/eventTextConstructor.js');
+        const { locale, maxFightersPerUser } = guildData.getSettings();
 
         {
             const currentTime = new Date();

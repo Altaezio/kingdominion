@@ -1,6 +1,5 @@
 const fs = require('node:fs');
-const path = require('node:path');
-const { locale } = require('../settings.json');
+const guildData = require('./guildData.js');
 const modifierLocalizations = require('./modifierLocalizations.js');
 const {
 	ActionRowBuilder,
@@ -8,15 +7,15 @@ const {
 	StringSelectMenuOptionBuilder,
 } = require('discord.js');
 
-const surveyPath = path.join(__dirname, '..', 'data', 'modifierSurvey.json');
-
 function loadSurvey() {
+	const surveyPath = guildData.getFilePath('modifierSurvey.json');
 	if (!fs.existsSync(surveyPath))
 		return undefined;
 	return JSON.parse(fs.readFileSync(surveyPath, 'utf8'));
 }
 
 function saveSurvey(survey) {
+	const surveyPath = guildData.getFilePath('modifierSurvey.json');
 	fs.writeFileSync(surveyPath, JSON.stringify(survey, null, 4));
 }
 
@@ -53,8 +52,8 @@ module.exports = {
 			return undefined;
 
 		const modifiers = Object.values(modifierManager.GetModifiers());
-		// if (modifiers.length < 5)
-		// 	throw new Error(`Cannot start modifier survey: ${modifiers.length} modifiers loaded, 5 required`);
+		if (modifiers.length < 5)
+			throw new Error(`Cannot start modifier survey: ${modifiers.length} modifiers loaded, 5 required`);
 
 		const modifierIds = modifiers.slice(0, 3).map(modifier => modifier.id);
 		const survey = this.CreateSurvey(modifierIds);
@@ -73,6 +72,7 @@ module.exports = {
 	},
 
 	BuildMessage(survey, modifierManager) {
+		const locale = guildData.getSettings().locale;
 		const options = survey.modifierIds.map(modifierId => {
 			const modifier = modifierManager.GetModifier(modifierId);
 			return new StringSelectMenuOptionBuilder()

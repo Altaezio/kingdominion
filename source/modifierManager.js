@@ -20,11 +20,12 @@ const modifierLocalizations = require('./modifierLocalizations.js');
 // these consequences will resolve before the next timing of the main event
 // events are added and resolved as a stack
 
-// the event itself should look if the author is outofcombat or not
+// an event has an author, who created the event, an executor, from which the event is considered to start from and can have targets
+// the event itself should look if the executor is outofcombat or not if necessary
 // otherwise an event in the stack will resolve
 
 // all events are passed through all fighters so they can react if they want
-// the order is always the targets and then the others
+// the order is always the executor and then the others
 
 module.exports = {
     loadedModifiers: undefined,

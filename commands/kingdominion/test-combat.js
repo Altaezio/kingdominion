@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const main = require('./run.js');
-const { testChannelId } = require('../../settings.json');
 
 module.exports = {
     category: 'utility',
@@ -15,9 +14,10 @@ module.exports = {
         ),
     async execute(interaction) {
         const { Text } = require('../../source/commandLocalizations.js');
+        const { testChannelId } = require('../../source/guildData.js').getSettings();
         await interaction.reply({ content: Text(interaction, 'test-combat', 'starting'), flags: MessageFlags.Ephemeral });
 
-        const channel = interaction.client.channels.cache.get(testChannelId);
+        const channel = interaction.client.channels.cache.get(testChannelId ?? interaction.channelId);
         const seed = interaction.options.getString('seed');
         main.RunCombat(channel, seed, { persistFighterStats: false });
     }

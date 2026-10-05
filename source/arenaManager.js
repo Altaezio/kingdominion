@@ -1,11 +1,10 @@
 const fs = require('node:fs');
 const crypto = require('node:crypto');
-const { emptyTile, locale } = require('../settings.json');
+const guildData = require('./guildData.js');
 const { GetLogText } = require('./logTexts.js');
+const loadedArenas = new Map();
 
 module.exports = {
-    loadedArena: undefined,
-
     SetSeed(seed) {
         const arena = this.GetArena();
         const actualSeed = seed ?? crypto.randomBytes(16).toString('hex');
@@ -57,13 +56,13 @@ module.exports = {
 
     LoadArena(arenaName) {
         try {
-            this.loadedArena = JSON.parse(fs.readFileSync(`./data/${arenaName}.json`, 'utf8'));
+            loadedArenas.set(guildData.getGuildId(), JSON.parse(fs.readFileSync(guildData.getFilePath(`${arenaName}.json`), 'utf8')));
         }
         catch (error) {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Error loading ${arenaName}: \n${error}`);
         }
-        if (!this.ArenaIsValid(this.loadedArena)) {
+        if (!this.ArenaIsValid(loadedArenas.get(guildData.getGuildId()))) {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Invalid properties. Reseting arena`);
             this.ResetArena();
@@ -75,23 +74,24 @@ module.exports = {
     },
 
     GetArena(arenaName = 'currentArena') {
-        if (this.loadedArena === undefined)
+        if (loadedArenas.get(guildData.getGuildId()) === undefined)
             this.LoadArena(arenaName);
-        return this.loadedArena;
+        return loadedArenas.get(guildData.getGuildId());
     },
 
     SaveArena(arenaName) {
-        if (this.loadedArena === undefined)
+        const arena = loadedArenas.get(guildData.getGuildId());
+        if (arena === undefined)
             return;
         const currentTime = new Date();
-        this.loadedArena['date'] = currentTime.toLocaleString('fr-FR');
-        const data = JSON.stringify(this.loadedArena, null, 4);
-        fs.writeFileSync(`./data/${arenaName}.json`, data);
+        arena['date'] = currentTime.toLocaleString('fr-FR');
+        const data = JSON.stringify(arena, null, 4);
+        fs.writeFileSync(guildData.getFilePath(`${arenaName}.json`), data);
         console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Arena \'${arenaName}\' saved`);
     },
 
     ResetArena() {
-        this.loadedArena = {
+        loadedArenas.set(guildData.getGuildId(), {
             state: 'initialisation',
             turn: {
                 number: 0,
@@ -105,7 +105,7 @@ module.exports = {
             fighterData: {},
             log: [],
             eventHistory: []
-        };
+        });
         this.SaveArena('currentArena');
     },
 
@@ -366,7 +366,7 @@ module.exports = {
                     }
                 }
                 else {
-                    visu = visu.concat(emptyTile);
+                    visu = visu.concat(guildData.getSettings().emptyTile ?? '⬛');
                 }
             }
             visu = visu.concat('\n');
@@ -384,7 +384,7 @@ module.exports = {
         }
     },
 
-    async Log(message, useConsole, channel, flags, localeName = locale) {
+    async Log(message, useConsole, channel, flags, localeName = guildData.getSettings().locale) {
         const arena = this.GetArena();
         const currentTime = new Date();
         let localizedMessage;

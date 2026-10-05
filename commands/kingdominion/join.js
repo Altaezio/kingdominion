@@ -1,6 +1,4 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const { maxFightersPerUser } = require('../../settings.json');
-
 module.exports = {
     category: 'kingdominion',
     data: new SlashCommandBuilder()
@@ -25,6 +23,7 @@ module.exports = {
         const { Text } = require('../../source/commandLocalizations.js');
         const userHandler = require(`../../source/userHandler.js`);
         const barracks = require(`../../source/barracks.js`);
+        const { maxFightersPerUser } = require('../../source/guildData.js').getSettings();
         const fighterName = interaction.options.getString('name').trim();
         const iconOption = interaction.options.getString('icon');
         const emotes = iconOption.match(/\p{Extended_Pictographic}/gu);

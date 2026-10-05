@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const { surveyChannelId } = require('../../settings.json');
 
 module.exports = {
     category: 'kingdominion',
@@ -12,13 +11,14 @@ module.exports = {
         const surveyManager = require('../../source/modifierSurvey.js');
         const barracks = require('../../source/barracks.js');
         const modifierManager = require('../../source/modifierManager.js');
+        const { surveyChannelId } = require('../../source/guildData.js').getSettings();
         const { Text } = require('../../source/commandLocalizations.js');
         const survey = surveyManager.GetCurrentSurvey();
 
         try {
             modifierManager.LoadModifiers();
             if (!survey || survey.status !== 'open') {
-                const channel = interaction.client.channels.cache.get(surveyChannelId);
+                const channel = interaction.client.channels.cache.get(surveyChannelId ?? interaction.channelId);
                 if (!channel) {
                     await interaction.editReply({ content: Text(interaction, 'survey', 'channelNotFound') });
                     return;

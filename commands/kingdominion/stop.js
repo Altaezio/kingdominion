@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
+const guildData = require('../../source/guildData.js');
 
 module.exports = {
     category: 'kingdominion',
@@ -32,7 +33,7 @@ module.exports = {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Stopping the entire game`);
 
-            const canceled = schedule.cancelJob('runningGame');
+            const canceled = schedule.cancelJob(`runningGame:${guildData.getGuildId()}`);
             if (!canceled) {
                 console.error('[' + currentTime.toLocaleString('fr-FR') + `]: Game not stopped`);
                 await interaction.editReply({ content: Text(interaction, 'stop', 'failed') });

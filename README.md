@@ -27,6 +27,14 @@ If you made a change or added a new command, you can use the command `/reload [n
 Careful, this command is currently setup as public and anyone can use it.  
 You might want it to be deployed as a guild command in a private guild.
 
+## Guild data
+
+Game data is stored separately under `data/guilds/<guildId>/` (fighters, users, arena, survey, and guild settings). This directory is ignored by Git, so users and server state are not committed. The first interaction in a guild initializes its data. Existing data for the guild named by `config.json`'s `guildId` is migrated from the old shared JSON files; keep that ID until the old data has been migrated.
+
+`config.json` remains local and contains the bot token and application client ID. Its `guildId` identifies the old server's data during migration and is used to remove that server's previous guild-only command registration. Slash commands are registered globally by `node deploy-commands.js`, so they can be used in every server where the bot is installed.
+
+Guild-specific channel IDs and settings can be set in `data/guilds/<guildId>/settings.json`. If a channel ID is not configured, game output uses the channel where `/run`, `/survey`, `/pause`, or `/test-combat` was invoked.
+
 ## Adding a modifier
 
 1. Copy [`source/templates/modifier.js.template`](./source/templates/modifier.js.template) to `source/modifier/<type>/<modifier-id>.js`, where `<type>` is `action`, `passive`, or `move`.

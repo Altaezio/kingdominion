@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
 const main = require('./run.js');
-const { testChannelId } = require('../../settings.json');
 
 module.exports = {
     category: 'kingdominion',
@@ -15,6 +14,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
         const { Text } = require('../../source/commandLocalizations.js');
+        const guildData = require('../../source/guildData.js');
         const arenaManager = require('../../source/arenaManager.js');
         const arena = arenaManager.GetArena();
         const paused = interaction.options.getBoolean('toggle') ?? !arena.paused;
@@ -24,7 +24,8 @@ module.exports = {
             await interaction.editReply({ content: Text(interaction, 'pause', 'paused') });
         }
         else {
-            const channel = interaction.client.channels.cache.get(testChannelId);
+            const { testChannelId } = guildData.getSettings();
+            const channel = interaction.client.channels.cache.get(testChannelId ?? interaction.channelId);
             main.RunCombat(channel);
             await interaction.editReply({ content: Text(interaction, 'pause', 'resumed') });
         }

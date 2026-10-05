@@ -1,8 +1,12 @@
 const fs = require('node:fs');
+const guildData = require('./guildData.js');
+const loadedFighterHolders = new Map();
+
+function getLoadedFighterHolder() {
+    return loadedFighterHolders.get(guildData.getGuildId());
+}
 
 module.exports = {
-    loadedFighterHolder: undefined,
-
     CreateFighter(name, icon, userLocalId) {
         const fighterHolder = this.GetFighterHolder();
         const newFighter = {
@@ -29,7 +33,7 @@ module.exports = {
         });
 
         const data = JSON.stringify(fighterHolder, null, 4);
-        fs.writeFileSync('./data/fighters.json', data);
+        fs.writeFileSync(guildData.getFilePath('fighters.json'), data);
         {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: New fighter created, name: ${name}, userLocalId: ${userLocalId}`);
@@ -51,20 +55,21 @@ module.exports = {
     },
 
     LoadAllFighters() {
-        const fighterHolder = JSON.parse(fs.readFileSync(`./data/fighters.json`, 'utf8'));
-        this.loadedFighterHolder = fighterHolder;
+        const fighterHolder = JSON.parse(fs.readFileSync(guildData.getFilePath('fighters.json'), 'utf8'));
+        loadedFighterHolders.set(guildData.getGuildId(), fighterHolder);
         {
             const currentTime = new Date();
-            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: ${Object.keys(this.loadedFighterHolder.allFighters).length} fighters loaded`);
+            console.log('[' + currentTime.toLocaleString('fr-FR') + `]: ${Object.keys(fighterHolder.allFighters).length} fighters loaded for guild ${guildData.getGuildId()}`);
         }
     },
 
     SaveFighters() {
-        if (this.loadedFighterHolder === undefined)
+        const fighterHolder = getLoadedFighterHolder();
+        if (fighterHolder === undefined)
             return;
 
-        const data = JSON.stringify(this.loadedFighterHolder, null, 4);
-        fs.writeFileSync('./data/fighters.json', data);
+        const data = JSON.stringify(fighterHolder, null, 4);
+        fs.writeFileSync(guildData.getFilePath('fighters.json'), data);
         {
             const currentTime = new Date();
             console.log('[' + currentTime.toLocaleString('fr-FR') + `]: Fighters saved`);
@@ -103,10 +108,10 @@ module.exports = {
     },
 
     GetFighterHolder() {
-        if (this.loadedFighterHolder === undefined)
-            return JSON.parse(fs.readFileSync(`./data/fighters.json`, 'utf8'));
-        else
-            return this.loadedFighterHolder;
+        const fighterHolder = getLoadedFighterHolder();
+        if (fighterHolder === undefined)
+            return JSON.parse(fs.readFileSync(guildData.getFilePath('fighters.json'), 'utf8'));
+        return fighterHolder;
     },
 
     GetFighterById(id) {
