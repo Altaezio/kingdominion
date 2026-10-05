@@ -35,6 +35,12 @@ Game data is stored separately under `data/guilds/<guildId>/` (fighters, users, 
 
 Guild-specific channel IDs and settings can be set in `data/guilds/<guildId>/settings.json`. If a channel ID is not configured, game output uses the channel where `/run`, `/survey`, `/pause`, or `/test-combat` was invoked.
 
+## Game execution
+
+The `/run` command delegates recurring jobs to `source/gameScheduler.js`. Combat rules and turn/event resolution live in `source/gameEngine.js`, which receives a small output interface rather than a Discord interaction or channel. `source/discordGameAdapter.js` handles log localization, timestamps, console output, and Discord delivery for scheduled, test, and resumed combats. The arena manager only appends rendered log entries to the arena state.
+
+`RunCombat` accepts `turnDelaySeconds` and `actionDelaySeconds` options (both default to 30 seconds). `/test-combat` sets both to `0` to run without intentional waits.
+
 ## Adding a modifier
 
 1. Copy [`source/templates/modifier.js.template`](./source/templates/modifier.js.template) to `source/modifier/<type>/<modifier-id>.js`, where `<type>` is `action`, `passive`, or `move`.
@@ -68,10 +74,10 @@ Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a
 -[x] Mod spin attack
 -[x] Mod lance
 -[x] Mod dash
+-[x] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
+-[] Separate game logic from visualization (engine vs renderer)
 
 ## Later
--[] Separate game logic from visualization (engine vs renderer)
--[] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
 -[] Mod en feu
 -[] Mod fire breathing (+1 dégât et feu à l'attaque)
 -[] Mod boule de feu

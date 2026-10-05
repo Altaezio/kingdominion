@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const schedule = require('node-schedule');
-const main = require('./run.js');
+const discordGameAdapter = require('../../source/discordGameAdapter.js');
 
 module.exports = {
     category: 'kingdominion',
@@ -26,7 +26,7 @@ module.exports = {
         else {
             const { testChannelId } = guildData.getSettings();
             const channel = interaction.client.channels.cache.get(testChannelId ?? interaction.channelId);
-            main.RunCombat(channel);
+            discordGameAdapter.RunCombat(channel);
             await interaction.editReply({ content: Text(interaction, 'pause', 'resumed') });
         }
     },

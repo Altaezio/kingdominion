@@ -1,7 +1,6 @@
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const guildData = require('./guildData.js');
-const { GetLogText } = require('./logTexts.js');
 const loadedArenas = new Map();
 
 module.exports = {
@@ -384,24 +383,8 @@ module.exports = {
         }
     },
 
-    async Log(message, useConsole, channel, flags, localeName = guildData.getSettings().locale) {
+    AppendLogEntry(entry) {
         const arena = this.GetArena();
-        const currentTime = new Date();
-        let localizedMessage;
-        if (typeof message === 'string') {
-            localizedMessage = message;
-        }
-        else if (message?.key) {
-            localizedMessage = GetLogText(message.key, message.values)[localeName?.toLowerCase().startsWith('fr') ? 'fr' : 'en'];
-        }
-        else {
-            localizedMessage = message[localeName?.toLowerCase().startsWith('fr') ? 'fr' : 'en'];
-        }
-        const timedText = `[${currentTime.toLocaleString('fr-FR')}]: ` + localizedMessage;
-        arena.log = arena.log.concat(timedText);
-        if (useConsole)
-            console.log(timedText);
-        if (channel)
-            await channel.send({ content: localizedMessage, flags: flags });
+        arena.log.push(entry);
     }
 };

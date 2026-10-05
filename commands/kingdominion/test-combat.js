@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const main = require('./run.js');
+const discordGameAdapter = require('../../source/discordGameAdapter.js');
 
 module.exports = {
     category: 'utility',
@@ -19,6 +19,10 @@ module.exports = {
 
         const channel = interaction.client.channels.cache.get(testChannelId ?? interaction.channelId);
         const seed = interaction.options.getString('seed');
-        main.RunCombat(channel, seed, { persistFighterStats: false });
+        discordGameAdapter.RunCombat(channel, seed, {
+            persistFighterStats: false,
+            turnDelaySeconds: 0,
+            actionDelaySeconds: 0,
+        });
     }
 };
