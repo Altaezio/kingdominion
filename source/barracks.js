@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const guildData = require('./guildData.js');
+const modifierPool = require('./modifierPool.js');
 const loadedFighterHolders = new Map();
 
 function getLoadedFighterHolder() {
@@ -7,7 +8,7 @@ function getLoadedFighterHolder() {
 }
 
 module.exports = {
-    CreateFighter(name, icon, userLocalId) {
+    CreateFighter(name, icon, userLocalId, { modifierMode = 'random', modifierChoices = [] } = {}) {
         const fighterHolder = this.GetFighterHolder();
         const newFighter = {
             id: fighterHolder.nextId,
@@ -15,7 +16,10 @@ module.exports = {
             name: name,
             icon: icon,
             userLocalId: userLocalId,
-            baseModifierIds: ['health', 'vision', 'simpleAttack', 'simpleCrossMove'],
+            baseModifierIds: modifierPool.GetNewFighterModifierIds(
+                Object.keys(require('./modifierManager.js').GetModifiers()),
+                { mode: modifierMode, choices: modifierChoices }
+            ),
             baseModifierData: {},
             currentTeamId: 0,
             wins: 0,
@@ -29,7 +33,7 @@ module.exports = {
         newFighter.baseModifierIds.forEach(modId => {
             const mod = modifiers[modId];
             if (mod.hasOwnProperty('defaultData'))
-                newFighter.baseModifierData[modId] = mod.defaultData;
+                newFighter.baseModifierData[modId] = structuredClone(mod.defaultData);
         });
 
         const data = JSON.stringify(fighterHolder, null, 4);

@@ -36,6 +36,13 @@ const localizations = {
             nameTaken: { fr: 'Nom déjà utilisé, essaye encore', en: 'Name already used, try again' },
             limit: { fr: 'Tu as déjà atteint la limite de {limit} combattant(s).', en: 'You have reached the limit of {limit} fighter(s).' },
             created: { fr: 'Tu as un nouveau combattant : {icon} {name}', en: 'You have a new fighter: {icon} {name}' },
+            modifierModePrompt: { fr: 'Tu as manqué des sondages. Comment veux-tu choisir les modificateurs de ton combattant ?', en: 'You missed modifier surveys. How would you like to choose your fighter’s modifiers?' },
+            modeNone: { fr: 'Modificateurs de base uniquement', en: 'Base modifiers only' },
+            modeRandom: { fr: 'Choix aléatoire pour chaque sondage', en: 'Random choice for each survey' },
+            modeChoose: { fr: 'Choisir un par un', en: 'Choose one by one' },
+            surveyChoicePlaceholder: { fr: 'Choisis le modificateur du sondage {surveyNumber}', en: 'Choose a modifier from survey {surveyNumber}' },
+            surveyChoicePrompt: { fr: 'Choisis un modificateur pour le sondage {surveyNumber} sur {surveyCount}.', en: 'Choose a modifier for survey {surveyNumber} of {surveyCount}.' },
+            choiceTimedOut: { fr: 'Temps écoulé. Aucun combattant n’a été créé ; relance /join pour réessayer.', en: 'Time expired. No fighter was created; run /join again to try once more.' },
         },
     },
     'modifier-info': {

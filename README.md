@@ -31,6 +31,12 @@ You might want it to be deployed as a guild command in a private guild.
 
 Game data is stored separately under `data/guilds/<guildId>/` (fighters, users, arena, survey, and guild settings). This directory is ignored by Git, so users and server state are not committed. The first interaction in a guild initializes its data. Existing data for the guild named by `config.json`'s `guildId` is migrated from the old shared JSON files; keep that ID until the old data has been migrated.
 
+The `modifierSurveyHistory.json` ledger stores both completed survey choices and consumed modifier IDs.
+
+When a survey closes, fighters without a vote are assigned a random survey option.
+
+When a player joins after completed surveys, `/join` presents an ephemeral button prompt with three catch-up modes: base modifiers only, random modifiers from missed surveys, or choosing one modifier from each missed survey. The prompt is skipped when there are no completed surveys to catch up on.
+
 `config.json` remains local and contains the bot token and application client ID. Its `guildId` identifies the old server's data during migration and is used to remove that server's previous guild-only command registration. Slash commands are registered globally by `node deploy-commands.js`, so they can be used in every server where the bot is installed.
 
 Guild-specific channel IDs and settings can be set in `data/guilds/<guildId>/settings.json`. If a channel ID is not configured, game output uses the channel where `/run`, `/survey`, `/pause`, or `/test-combat` was invoked.
@@ -75,7 +81,7 @@ Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a
 -[x] Mod lance
 -[x] Mod dash
 -[x] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
--[] Separate game logic from visualization (engine vs renderer)
+-[x] Separate game logic from visualization (engine vs renderer)
 
 ## Later
 -[] Mod en feu

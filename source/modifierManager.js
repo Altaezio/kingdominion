@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const tagManager = require('./tagManager.js');
 const modifierLocalizations = require('./modifierLocalizations.js');
+const modifierPool = require('./modifierPool.js');
 
 // ACTION are modifiers fighters can use to do something
 // PASSIVE are modifiers always there
@@ -96,5 +97,27 @@ module.exports = {
         return Object.values(this.GetModifiers()).filter(modifier =>
             tagManager.HasTag(modifier.tags ?? [], tagId)
         );
+    },
+
+    GetSurveyableModifiers() {
+        const modifiers = this.GetModifiers();
+        return modifierPool.GetSurveyableModifierIds(Object.keys(modifiers))
+            .map(modifierId => {
+                const modifier = modifiers[modifierId];
+                if (!modifier)
+                    throw new Error(`Survey pool contains unknown modifier: ${modifierId}`);
+                return modifier;
+            });
+    },
+
+    SelectModifiersForSurvey(count) {
+        const modifiers = this.GetModifiers();
+        return modifierPool.SelectModifiersForSurvey(Object.keys(modifiers), count)
+            .map(modifierId => {
+                const modifier = modifiers[modifierId];
+                if (!modifier)
+                    throw new Error(`Survey pool contains unknown modifier: ${modifierId}`);
+                return modifier;
+            });
     }
 }

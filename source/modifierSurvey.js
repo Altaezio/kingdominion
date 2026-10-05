@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const guildData = require('./guildData.js');
+const modifierPool = require('./modifierPool.js');
 const modifierLocalizations = require('./modifierLocalizations.js');
 const {
 	ActionRowBuilder,
@@ -51,11 +52,7 @@ module.exports = {
 		if (existingSurvey?.status === 'open')
 			return undefined;
 
-		const modifiers = Object.values(modifierManager.GetModifiers());
-		if (modifiers.length < 5)
-			throw new Error(`Cannot start modifier survey: ${modifiers.length} modifiers loaded, 5 required`);
-
-		const modifierIds = modifiers.slice(0, 3).map(modifier => modifier.id);
+		const modifierIds = modifierManager.SelectModifiersForSurvey(5).map(modifier => modifier.id);
 		const survey = this.CreateSurvey(modifierIds);
 		const message = await channel.send(this.BuildMessage(survey, modifierManager));
 		this.SetMessageLocation(survey.id, channel.id, message.id);
@@ -110,25 +107,49 @@ module.exports = {
 		return true;
 	},
 
-	async CloseSurvey(barracks, modifierManager, channel) {
+	async CloseSurvey(barracks, modifierManager, channel, { random = Math.random } = {}) {
 		const survey = loadSurvey();
 		if (!survey || survey.status !== 'open')
 			return undefined;
 
 		const fighterHolder = barracks.GetFighterHolder();
+		survey.autoAssignments ??= {};
+		Object.values(fighterHolder.allFighters).forEach(fighter => {
+			if (survey.votes[fighter.id] !== undefined || survey.autoAssignments[fighter.id] !== undefined)
+				return;
+
+			const eligibleModifiers = survey.modifierIds.filter(modifierId =>
+				!fighter.baseModifierIds.includes(modifierId)
+			);
+			if (eligibleModifiers.length === 0)
+				return;
+			const selectedIndex = Math.floor(random() * eligibleModifiers.length);
+			if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= eligibleModifiers.length)
+				throw new RangeError('Random source must return a value in the range [0, 1)');
+			survey.autoAssignments[String(fighter.id)] = eligibleModifiers[selectedIndex];
+		});
+		saveSurvey(survey);
+
 		const appliedModifiers = [];
-		Object.entries(survey.votes).forEach(([fighterId, modifierId]) => {
+		const fighterModifierAssignments = {
+			...survey.votes,
+			...survey.autoAssignments,
+		};
+		Object.entries(fighterModifierAssignments).forEach(([fighterId, modifierId]) => {
 			const fighter = fighterHolder.allFighters[fighterId];
 			if (!fighter || fighter.baseModifierIds.includes(modifierId))
 				return;
 
 			const modifier = modifierManager.GetModifier(modifierId);
+			if (!modifier)
+				throw new Error(`Survey modifier ${modifierId} is not loaded`);
 			fighter.baseModifierIds.push(modifierId);
 			if (modifier.defaultData)
 				fighter.baseModifierData[modifierId] = structuredClone(modifier.defaultData);
 			appliedModifiers.push({ fighterId, modifierId });
 		});
 		barracks.SaveFighters();
+		modifierPool.RecordCompletedSurvey(survey.id, survey.modifierIds);
 		survey.status = 'closed';
 		saveSurvey(survey);
 		if (channel && survey.messageId) {
