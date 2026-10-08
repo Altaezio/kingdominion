@@ -17,13 +17,14 @@ module.exports = {
                 .setDescription('The fighter’s new name.')
                 .setMinLength(3)
                 .setMaxLength(10)
+                .setAutocomplete(true)
                 .setRequired(true)
         )
         .addStringOption(option =>
             option.setName('new-icon')
                 .setDescription('The fighter’s new emoji icon.')
-                .setMinLength(1)
                 .setMaxLength(1999)
+                .setAutocomplete(true)
                 .setRequired(true)
         ),
     async execute(interaction) {
@@ -32,9 +33,23 @@ module.exports = {
         const barracks = require('../../source/barracks.js');
         const { GetFirstEmoji } = require('../../source/emojiUtils.js');
         const fighterName = interaction.options.getString('name').trim();
-        const newName = interaction.options.getString('new-name').trim();
-        const iconOption = interaction.options.getString('new-icon');
-        const newIcon = GetFirstEmoji(iconOption);
+        const newNameOption = interaction.options.getString('new-name', true);
+        const iconOption = interaction.options.getString('new-icon', true);
+
+        const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
+        const fighter = barracks.GetFightersForUser(user.id)
+            .find(candidate => candidate.name === fighterName);
+
+        if (!fighter) {
+            await interaction.reply({
+                content: Text(interaction, 'rename', 'fighterNotFound', { name: fighterName }),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+        const newName = newNameOption.trim();
+        const iconInput = iconOption.trim();
+        const newIcon = GetFirstEmoji(iconInput);
 
         if (newName.length < 3 || newName.length > 10) {
             await interaction.reply({
@@ -45,19 +60,7 @@ module.exports = {
         }
         if (!newIcon) {
             await interaction.reply({
-                content: Text(interaction, 'rename', 'invalidIcon', { icon: iconOption }),
-                flags: MessageFlags.Ephemeral,
-            });
-            return;
-        }
-
-        const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
-        const fighter = barracks.GetFightersForUser(user.id)
-            .find(candidate => candidate.name === fighterName);
-
-        if (!fighter) {
-            await interaction.reply({
-                content: Text(interaction, 'rename', 'fighterNotFound', { name: fighterName }),
+                content: Text(interaction, 'rename', 'invalidIcon', { icon: iconInput }),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -97,17 +100,46 @@ module.exports = {
         });
     },
     async autocomplete(interaction) {
+        const { Text } = require('../../source/commandLocalizations.js');
         const userHandler = require('../../source/userHandler.js');
         const barracks = require('../../source/barracks.js');
         const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
-        const focusedValue = interaction.options.getFocused().toLocaleLowerCase();
-        const choices = barracks.GetFightersForUser(user.id)
-            .filter(fighter => fighter.name.toLocaleLowerCase().includes(focusedValue))
-            .slice(0, 25)
-            .map(fighter => ({
-                name: `${fighter.icon} ${fighter.name}`,
+        const focusedOption = interaction.options.getFocused(true);
+        if (focusedOption.name === 'name') {
+            const focusedValue = focusedOption.value.toLocaleLowerCase();
+            const choices = barracks.GetFightersForUser(user.id)
+                .filter(fighter => fighter.name.toLocaleLowerCase().includes(focusedValue))
+                .slice(0, 25)
+                .map(fighter => ({
+                    name: `${fighter.icon} ${fighter.name}`,
+                    value: fighter.name,
+                }));
+            await interaction.respond(choices);
+            return;
+        }
+
+        const selectedFighterName = interaction.options.getString('name');
+        const fighter = barracks.GetFightersForUser(user.id)
+            .find(candidate => candidate.name === selectedFighterName);
+        if (!fighter) {
+            await interaction.respond([]);
+            return;
+        }
+
+        if (focusedOption.name === 'new-name') {
+            await interaction.respond([{
+                name: Text(interaction, 'rename', 'keepNameChoice', { name: fighter.name }).slice(0, 100),
                 value: fighter.name,
-            }));
-        await interaction.respond(choices);
+            }]);
+        }
+        else if (focusedOption.name === 'new-icon') {
+            await interaction.respond([{
+                name: Text(interaction, 'rename', 'keepIconChoice', { icon: fighter.icon }).slice(0, 100),
+                value: fighter.icon,
+            }]);
+        }
+        else {
+            await interaction.respond([]);
+        }
     },
 };

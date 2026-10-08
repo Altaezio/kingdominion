@@ -75,6 +75,8 @@ module.exports = {
         const fighter = this.GetFighterById(fighterId);
         if (!fighter || fighter.isRetired || this.NameIsTaken(name, fighterId))
             return false;
+        if (fighter.name === name && fighter.icon === icon)
+            return false;
 
         fighter.identityHistory ??= [];
         fighter.identityHistory.push({
@@ -98,10 +100,7 @@ module.exports = {
     },
 
     SaveFighters() {
-        const fighterHolder = getLoadedFighterHolder();
-        if (fighterHolder === undefined)
-            return;
-
+        const fighterHolder = this.GetFighterHolder();
         const data = JSON.stringify(fighterHolder, null, 4);
         fs.writeFileSync(guildData.getFilePath('fighters.json'), data);
         {
@@ -143,8 +142,10 @@ module.exports = {
 
     GetFighterHolder() {
         const fighterHolder = getLoadedFighterHolder();
-        if (fighterHolder === undefined)
-            return JSON.parse(fs.readFileSync(guildData.getFilePath('fighters.json'), 'utf8'));
+        if (fighterHolder === undefined) {
+            this.LoadAllFighters();
+            return getLoadedFighterHolder();
+        }
         return fighterHolder;
     },
 

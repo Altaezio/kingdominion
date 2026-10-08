@@ -59,6 +59,7 @@ module.exports = {
         await interaction.reply({
             content: lines.join('\n'),
             allowedMentions: { parse: [] },
+            flags: MessageFlags.Ephemeral
         });
     },
     async autocomplete(interaction) {
