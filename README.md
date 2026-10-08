@@ -33,6 +33,8 @@ Game data is stored separately under `data/guilds/<guildId>/` (fighters, users, 
 
 Players can use `/retire name:<fighter>` to retire one of their fighters. The fighter's record and statistics are preserved, but it no longer counts toward the player's active fighter limit or receives future survey modifiers or combat slots. If it is already in a fight, it remains in that fight until it ends.
 
+Players can use `/rename` to change the name and icon of one of their active fighters. The rename announcement is public, and `/fighter-history` lets anyone look up the fighter's previous names and icons.
+
 The `modifierSurveyHistory.json` ledger stores both completed survey choices and consumed modifier IDs.
 
 When a survey closes, fighters without a vote are assigned a random survey option.

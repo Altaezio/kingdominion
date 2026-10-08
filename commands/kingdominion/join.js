@@ -30,16 +30,16 @@ module.exports = {
         const modifierManager = require('../../source/modifierManager.js');
         const modifierPool = require('../../source/modifierPool.js');
         const guildData = require('../../source/guildData.js');
+        const { GetFirstEmoji } = require('../../source/emojiUtils.js');
         const { maxFightersPerUser } = guildData.getSettings();
         const fighterName = interaction.options.getString('name').trim();
         const iconOption = interaction.options.getString('icon');
-        const emotes = iconOption.match(/\p{Extended_Pictographic}/gu);
-        if (!emotes || emotes.length <= 0) {
-            console.debug('not possible emoji :', emotes, 'from :', iconOption);
+        const icon = GetFirstEmoji(iconOption);
+        if (!icon) {
+            console.debug('not possible emoji from :', iconOption);
             await interaction.reply({ content: Text(interaction, 'join', 'invalidIcon', { icon: iconOption }), flags: MessageFlags.Ephemeral });
             return;
         }
-        const icon = emotes[0];
 
         if (barracks.NameIsTaken(fighterName)) {
             await interaction.reply({ content: Text(interaction, 'join', 'nameTaken'), flags: MessageFlags.Ephemeral });

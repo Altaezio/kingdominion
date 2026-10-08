@@ -56,6 +56,37 @@ const localizations = {
             retired: { fr: '**{name}** a été retiré. Ses données sont conservées, mais il ne participera plus aux prochains combats.', en: '**{name}** has been retired. Its data is preserved, but it will not join future fights.' },
         },
     },
+    rename: {
+        description: { fr: 'Change le nom et l’icône d’un de tes combattants', en: 'Changes the name and icon of one of your fighters' },
+        options: {
+            name: { fr: 'Nom actuel de ton combattant', en: 'Your fighter’s current name' },
+            'new-name': { fr: 'Nouveau nom du combattant', en: 'The fighter’s new name' },
+            'new-icon': { fr: 'Nouvel emoji du combattant', en: 'The fighter’s new emoji icon' },
+        },
+        responses: {
+            invalidName: { fr: 'Le nouveau nom doit contenir entre 3 et 10 caractères.', en: 'The new name must be between 3 and 10 characters.' },
+            invalidIcon: { fr: '`{icon}` ne contient pas d’emoji valide.', en: '`{icon}` does not contain a valid emoji.' },
+            fighterNotFound: { fr: 'Tu n’as aucun combattant actif nommé **{name}**.', en: 'You do not have an active fighter named **{name}**.' },
+            nameTaken: { fr: 'Le nom **{name}** est déjà utilisé.', en: 'The name **{name}** is already in use.' },
+            noChange: { fr: 'Ce combattant porte déjà ce nom et cette icône.', en: 'This fighter already has that name and icon.' },
+            failed: { fr: 'Impossible de renommer ce combattant. Réessaie.', en: 'Could not rename this fighter. Please try again.' },
+            renamed: { fr: '{oldIcon} **{oldName}** devient {newIcon} **{newName}** !', en: '{oldIcon} **{oldName}** is now {newIcon} **{newName}**!' },
+        },
+    },
+    'fighter-history': {
+        description: { fr: 'Affiche les anciens noms et icônes d’un combattant', en: 'Shows a fighter’s previous names and icons' },
+        options: {
+            name: { fr: 'Combattant à consulter', en: 'The fighter to look up' },
+        },
+        responses: {
+            notFound: { fr: 'Aucun combattant actuel trouvé avec le nom **{name}**.', en: 'No fighter currently found with the name **{name}**.' },
+            header: { fr: 'Identité actuelle : {icon} **{name}**', en: 'Current identity: {icon} **{name}**' },
+            noHistory: { fr: 'Aucun changement de nom ou d’icône enregistré.', en: 'No name or icon changes have been recorded.' },
+            previous: { fr: 'Historique précédent :', en: 'Previous identities:' },
+            entry: { fr: '{icon} **{name}** (jusqu’au {date})', en: '{icon} **{name}** (until {date})' },
+            older: { fr: '… et {count} changement(s) antérieur(s).', en: '… and {count} earlier change(s).' },
+        },
+    },
     'modifier-info': {
         description: { fr: 'Donne la description complète d\'un modificateur', en: 'Shows the full description of a modifier' },
         options: {

@@ -45,10 +45,12 @@ module.exports = {
         return newFighter;
     },
 
-    NameIsTaken(name) {
+    NameIsTaken(name, exceptFighterId) {
         const fighterHolder = this.GetFighterHolder();
         const fightersIds = Object.keys(fighterHolder.allFighters);
-        const fighterId = fightersIds.find(id => fighterHolder.allFighters[id].name === name);
+        const fighterId = fightersIds.find(id =>
+            id !== String(exceptFighterId) && fighterHolder.allFighters[id].name === name
+        );
         return fighterId !== undefined;
     },
 
@@ -65,6 +67,23 @@ module.exports = {
 
         fighter.isRetired = true;
         fighter.retiredAt = new Date().toISOString();
+        this.SaveFighters();
+        return true;
+    },
+
+    RenameFighter(fighterId, name, icon) {
+        const fighter = this.GetFighterById(fighterId);
+        if (!fighter || fighter.isRetired || this.NameIsTaken(name, fighterId))
+            return false;
+
+        fighter.identityHistory ??= [];
+        fighter.identityHistory.push({
+            name: fighter.name,
+            icon: fighter.icon,
+            changedAt: new Date().toISOString(),
+        });
+        fighter.name = name;
+        fighter.icon = icon;
         this.SaveFighters();
         return true;
     },
