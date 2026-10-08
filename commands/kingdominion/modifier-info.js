@@ -8,6 +8,7 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('modifier')
 				.setDescription('Identifiant du modificateur')
+				.setAutocomplete(true)
 				.setRequired(true)
 		),
 	async execute(interaction) {
@@ -37,5 +38,21 @@ module.exports = {
 		}
 
 		await interaction.editReply({ content: description });
+	},
+	async autocomplete(interaction) {
+		const modifierManager = require('../../source/modifierManager.js');
+		const modifierLocalizations = require('../../source/modifierLocalizations.js');
+		const focusedValue = interaction.options.getFocused().toLocaleLowerCase();
+		const choices = Object.values(modifierManager.GetModifiers())
+			.map(modifier => ({
+				name: `${modifierLocalizations.GetName(modifier.id, interaction.locale)} (${modifier.id})`,
+				value: modifier.id,
+			}))
+			.filter(choice =>
+				choice.name.toLocaleLowerCase().includes(focusedValue)
+				|| choice.value.toLocaleLowerCase().includes(focusedValue)
+			)
+			.slice(0, 25);
+		await interaction.respond(choices);
 	},
 };

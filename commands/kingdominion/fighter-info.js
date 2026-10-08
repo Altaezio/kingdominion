@@ -9,6 +9,7 @@ module.exports = {
             option.setName('name')
                 .setDescription('Le nom de ton combattant')
                 .setMinLength(3)
+                .setAutocomplete(true)
                 .setRequired(true)
         )
         .addBooleanOption(option =>
@@ -101,5 +102,18 @@ module.exports = {
             msg = Text(interaction, 'fighter-info', 'outOfCombat') + '\n' + msg;
         }
         await interaction.editReply({ content: msg });
+    },
+    async autocomplete(interaction) {
+        const barracks = require('../../source/barracks.js');
+        const focusedValue = interaction.options.getFocused().toLocaleLowerCase();
+        const fighters = Object.values(barracks.GetFighterHolder().allFighters);
+        const choices = fighters
+            .filter(fighter => fighter.name.toLocaleLowerCase().includes(focusedValue))
+            .slice(0, 25)
+            .map(fighter => ({
+                name: `${fighter.icon} ${fighter.name}`,
+                value: fighter.name,
+            }));
+        await interaction.respond(choices);
     },
 };

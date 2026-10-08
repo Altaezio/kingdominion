@@ -16,6 +16,23 @@ module.exports = {
             await this.executeModifierSurveyVote(interaction);
             return;
         }
+        if (interaction.isAutocomplete()) {
+            const command = interaction.client.commands.get(interaction.commandName);
+            if (!command || typeof command.autocomplete !== 'function') {
+                if (!command)
+                    console.error(`No command matching ${interaction.commandName} was found.`);
+                await interaction.respond([]);
+                return;
+            }
+
+            try {
+                await command.autocomplete(interaction);
+            } catch (error) {
+                console.error(`Autocomplete error for ${interaction.commandName}:`, error);
+                await interaction.respond([]);
+            }
+            return;
+        }
         if (!interaction.isChatInputCommand()) return;
         const command = interaction.client.commands.get(interaction.commandName);
 

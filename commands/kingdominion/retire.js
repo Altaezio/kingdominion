@@ -9,6 +9,7 @@ module.exports = {
             option.setName('name')
                 .setDescription('The name of your fighter.')
                 .setMinLength(3)
+                .setAutocomplete(true)
                 .setRequired(true)
         ),
     async execute(interaction) {
@@ -33,5 +34,19 @@ module.exports = {
             content: Text(interaction, 'retire', 'retired', { name: fighter.name }),
             flags: MessageFlags.Ephemeral,
         });
+    },
+    async autocomplete(interaction) {
+        const userHandler = require('../../source/userHandler.js');
+        const barracks = require('../../source/barracks.js');
+        const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
+        const focusedValue = interaction.options.getFocused().toLocaleLowerCase();
+        const choices = barracks.GetFightersForUser(user.id)
+            .filter(fighter => fighter.name.toLocaleLowerCase().includes(focusedValue))
+            .slice(0, 25)
+            .map(fighter => ({
+                name: `${fighter.icon} ${fighter.name}`,
+                value: fighter.name,
+            }));
+        await interaction.respond(choices);
     },
 };
