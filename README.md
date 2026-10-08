@@ -31,6 +31,8 @@ You might want it to be deployed as a guild command in a private guild.
 
 Game data is stored separately under `data/guilds/<guildId>/` (fighters, users, arena, survey, and guild settings). This directory is ignored by Git, so users and server state are not committed. The first interaction in a guild initializes its data. Existing data for the guild named by `config.json`'s `guildId` is migrated from the old shared JSON files; keep that ID until the old data has been migrated.
 
+Players can use `/retire name:<fighter>` to retire one of their fighters. The fighter's record and statistics are preserved, but it no longer counts toward the player's active fighter limit or receives future survey modifiers or combat slots. If it is already in a fight, it remains in that fight until it ends.
+
 The `modifierSurveyHistory.json` ledger stores both completed survey choices and consumed modifier IDs.
 
 When a survey closes, fighters without a vote are assigned a random survey option.
@@ -82,6 +84,7 @@ Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a
 -[x] Mod dash
 -[x] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
 -[x] Separate game logic from visualization (engine vs renderer)
+-[] have a nice restart that knows how to handle old running data and how to resume the fights
 
 ## Later
 -[] Mod en feu

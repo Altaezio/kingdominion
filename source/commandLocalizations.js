@@ -22,7 +22,8 @@ const localizations = {
         description: { fr: 'Donne la liste de tous les combattants', en: 'Shows the list of all fighters' },
         responses: {
             header: { fr: 'Liste de tous les combattants :', en: 'List of all fighters:' },
-            entry: { fr: '\n - {icon} Nom : **{name}**, Joueur : **{player}**', en: '\n - {icon} Name: **{name}**, Player: **{player}**' },
+            entry: { fr: '\n - {icon} Nom : **{name}**, Joueur : **{player}**{status}', en: '\n - {icon} Name: **{name}**, Player: **{player}**{status}' },
+            retired: { fr: ' (retraité)', en: ' (retired)' },
         },
     },
     join: {
@@ -43,6 +44,16 @@ const localizations = {
             surveyChoicePlaceholder: { fr: 'Choisis le modificateur du sondage {surveyNumber}', en: 'Choose a modifier from survey {surveyNumber}' },
             surveyChoicePrompt: { fr: 'Choisis un modificateur pour le sondage {surveyNumber} sur {surveyCount}.', en: 'Choose a modifier for survey {surveyNumber} of {surveyCount}.' },
             choiceTimedOut: { fr: 'Temps écoulé. Aucun combattant n’a été créé ; relance /join pour réessayer.', en: 'Time expired. No fighter was created; run /join again to try once more.' },
+        },
+    },
+    retire: {
+        description: { fr: 'Retire un de tes combattants', en: 'Retires one of your fighters' },
+        options: {
+            name: { fr: 'Nom de ton combattant', en: 'Your fighter’s name' },
+        },
+        responses: {
+            notFound: { fr: 'Tu n’as aucun combattant actif nommé **{name}**.', en: 'You do not have an active fighter named **{name}**.' },
+            retired: { fr: '**{name}** a été retiré. Ses données sont conservées, mais il ne participera plus aux prochains combats.', en: '**{name}** has been retired. Its data is preserved, but it will not join future fights.' },
         },
     },
     'modifier-info': {
@@ -185,9 +196,9 @@ function ApplyLocalizations(command) {
         const description = commandLocalization.options?.[option.name];
         if (description)
             option.description_localizations = {
-            fr: GetLocalizedText(description, 'fr'),
-            'en-US': GetLocalizedText(description, 'en'),
-        };
+                fr: GetLocalizedText(description, 'fr'),
+                'en-US': GetLocalizedText(description, 'en'),
+            };
     }
     return command;
 }

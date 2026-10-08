@@ -20,7 +20,8 @@ module.exports = {
             if (fighter) {
                 const user = userHandler.GetLocalUserByLocalId(fighter.userLocalId);
                 if (user) {
-                    fighterListText = fighterListText.concat(Text(interaction, 'fighter-list', 'entry', { icon: fighter.icon, name: fighter.name, player: user.name }));
+                    const status = fighter.isRetired ? Text(interaction, 'fighter-list', 'retired') : '';
+                    fighterListText = fighterListText.concat(Text(interaction, 'fighter-list', 'entry', { icon: fighter.icon, name: fighter.name, player: user.name, status }));
                 }
             }
         });

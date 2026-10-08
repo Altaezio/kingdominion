@@ -55,7 +55,18 @@ module.exports = {
     GetFightersForUser(userLocalId) {
         const fighterHolder = this.GetFighterHolder();
         return Object.values(fighterHolder.allFighters)
-            .filter(fighter => fighter.userLocalId === userLocalId);
+            .filter(fighter => fighter.userLocalId === userLocalId && !fighter.isRetired);
+    },
+
+    RetireFighter(fighterId) {
+        const fighter = this.GetFighterById(fighterId);
+        if (!fighter || fighter.isRetired)
+            return false;
+
+        fighter.isRetired = true;
+        fighter.retiredAt = new Date().toISOString();
+        this.SaveFighters();
+        return true;
     },
 
     LoadAllFighters() {

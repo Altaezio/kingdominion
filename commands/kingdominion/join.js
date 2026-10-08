@@ -84,6 +84,6 @@ module.exports = {
             modifierMode,
             modifierChoices,
         });
-        await interaction.editReply({ content: Text(interaction, 'join', 'created', { icon: newFighter.icon, name: newFighter.name }) });
+        await interaction.followUp({ content: Text(interaction, 'join', 'created', { icon: newFighter.icon, name: newFighter.name }) });
     },
 };

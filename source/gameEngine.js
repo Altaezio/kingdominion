@@ -40,6 +40,8 @@ module.exports = {
         const fightersPerUser = {};
         const fightersIds = Object.keys(fighterHolder.allFighters).filter(fighterId => {
             const fighter = fighterHolder.allFighters[fighterId];
+            if (arena.state === 'initialisation' && fighter.isRetired)
+                return false;
             if (fighter.userLocalId === 0)
                 return true;
 
