@@ -17,8 +17,10 @@ Your bot should be ready to run and you can modify it to your will
 
 All the commands are executed at the top level of the project
 
-- Run the command `node deploy-commands.js` to register all the slash commands of your bot
-  - Do this the very first time and anytime you add a new command to your bot, not everytime you start it
+- Set `testGuildId` in `config.json` to your test server's ID
+- Run `node deploy-commands.js --guild` to deploy commands to the test server for fast iteration
+- Run `node deploy-commands.js --global` when you are ready to deploy commands to every server
+  - These modes are mutually exclusive: guild deployment clears global commands, and global deployment clears commands from the configured test guild
 - Run the command `node .` 
 
 Your bot should be online and ready to receive commands and take actions
@@ -41,7 +43,7 @@ When a survey closes, fighters without a vote are assigned a random survey optio
 
 When a player joins after completed surveys, `/join` presents an ephemeral button prompt with three catch-up modes: base modifiers only, random modifiers from missed surveys, or choosing one modifier from each missed survey. The prompt is skipped when there are no completed surveys to catch up on.
 
-`config.json` remains local and contains the bot token and application client ID. Its `guildId` identifies the old server's data during migration and is used to remove that server's previous guild-only command registration. Slash commands are registered globally by `node deploy-commands.js`, so they can be used in every server where the bot is installed.
+`config.json` remains local and contains the bot token and application client ID. `testGuildId` identifies the server used for fast guild-scoped command testing. Deploy with `node deploy-commands.js --guild` for the test server or `node deploy-commands.js --global` for every server where the bot is installed. The script clears commands from the other scope to prevent duplicate listings.
 
 Guild-specific channel IDs and settings can be set in `data/guilds/<guildId>/settings.json`. If a channel ID is not configured, game output uses the channel where `/run`, `/survey`, `/pause`, or `/test-combat` was invoked.
 

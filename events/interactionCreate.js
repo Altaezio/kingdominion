@@ -11,57 +11,57 @@ module.exports = {
         }
 
         return guildData.run(interaction.guildId, async () => {
-        const { Text } = require('../source/commandLocalizations.js');
-        if (interaction.isStringSelectMenu() && interaction.customId.startsWith('modifier-survey:')) {
-            await this.executeModifierSurveyVote(interaction);
-            return;
-        }
-        if (interaction.isAutocomplete()) {
-            const command = interaction.client.commands.get(interaction.commandName);
-            if (!command || typeof command.autocomplete !== 'function') {
-                if (!command)
-                    console.error(`No command matching ${interaction.commandName} was found.`);
-                await interaction.respond([]);
-                return;
+            const { Text } = require('../source/commandLocalizations.js');
+            if (interaction.isStringSelectMenu() && interaction.customId.startsWith('modifier-survey:')) {
+                await this.executeModifierSurveyVote(interaction);
             }
+            else if (interaction.isAutocomplete()) {
+                const command = interaction.client.commands.get(interaction.commandName);
+                if (!command || typeof command.autocomplete !== 'function') {
+                    if (!command)
+                        console.error(`No command matching ${interaction.commandName} was found.`);
+                    await interaction.respond([]);
+                    return;
+                }
 
-            try {
-                await command.autocomplete(interaction);
-            } catch (error) {
-                console.error(`Autocomplete error for ${interaction.commandName}:`, error);
-                await interaction.respond([]);
-            }
-            return;
-        }
-        if (!interaction.isChatInputCommand()) return;
-        const command = interaction.client.commands.get(interaction.commandName);
-
-        if (!command) {
-            console.error(`No command matching ${interaction.commandName} was found.`);
-            await interaction.reply({ content: Text(interaction, 'interaction', 'commandNotFound', { name: interaction.commandName }), flags: MessageFlags.Ephemeral });
-            return;
-        }
-
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            if (!interaction.deferred && !interaction.replied) {
                 try {
-                    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                    await command.autocomplete(interaction);
+                } catch (error) {
+                    console.error(`Autocomplete error for ${interaction.commandName}:`, error);
+                    await interaction.respond([]);
                 }
-                catch (error) {
+            }
+            else if (interaction.isChatInputCommand()) {
+                const command = interaction.client.commands.get(interaction.commandName);
+
+
+                if (!command) {
+                    console.error(`No command matching ${interaction.commandName} was found.`);
+                    await interaction.reply({ content: Text(interaction, 'interaction', 'commandNotFound', { name: interaction.commandName }), flags: MessageFlags.Ephemeral });
+                    return;
+                }
+
+                try {
+                    await command.execute(interaction);
+                } catch (error) {
+                    if (!interaction.deferred && !interaction.replied) {
+                        try {
+                            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                        }
+                        catch (error) {
+                            console.error(`Interaction: `, interaction);
+                        }
+                    }
+                    console.error(`Error: `, error);
                     console.error(`Interaction: `, interaction);
+                    if (interaction.replied) {
+                        await interaction.followUp({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
+                    }
+                    else {
+                        await interaction.editReply({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
+                    }
                 }
             }
-            console.error(`Error: `, error);
-            console.error(`Interaction: `, interaction);
-            if (interaction.replied) {
-                await interaction.followUp({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
-            }
-            else {
-                await interaction.editReply({ content: Text(interaction, 'interaction', 'error', { error }), flags: MessageFlags.Ephemeral });
-            }
-        }
         });
     },
 
