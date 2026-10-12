@@ -58,7 +58,6 @@ function ensureGuildData(guildId = getGuildId()) {
 	const legacyFiles = {
 		fighters: { filename: 'fighters.json', fallback: { allFighters: {}, nextId: 0 } },
 		currentArena: { filename: 'currentArena.json', fallback: createEmptyArena() },
-		interactionData: { filename: 'interactionData.json', fallback: { lastGameMessageId: '', runCommandMessageId: '' } },
 	};
 	for (const { filename, fallback } of Object.values(legacyFiles)) {
 		const destination = path.join(guildDirectory, filename);
