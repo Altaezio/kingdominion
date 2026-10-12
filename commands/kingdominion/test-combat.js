@@ -23,6 +23,7 @@ module.exports = {
             persistFighterStats: false,
             turnDelaySeconds: 0,
             actionDelaySeconds: 0,
+            debug: true,
         });
     }
 };

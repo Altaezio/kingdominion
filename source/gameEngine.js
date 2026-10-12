@@ -11,6 +11,7 @@ module.exports = {
         persistFighterStats = true,
         turnDelaySeconds = 30,
         actionDelaySeconds = 30,
+        debug = false,
     } = {}) {
         for (const [name, delay] of Object.entries({ turnDelaySeconds, actionDelaySeconds })) {
             if (!Number.isFinite(delay) || delay < 0)
@@ -105,11 +106,12 @@ module.exports = {
                     fighterPositions[id] = position;
                 })
                 const fightersOnMapIds = Object.keys(fighterPositions);
-                // console.debug('fighters on map', fightersOnMapIds);
+                if (debug)
+                    console.debug('fighters on map', fightersOnMapIds);
 
                 if (arena.state === 'battling') {
                     arena.turn['fightersOnMapIds'] = fightersOnMapIds;
-                    await this.NewTurn(arena.turn, output, { actionDelaySeconds });
+                    await this.NewTurn(arena.turn, output, { actionDelaySeconds, debug });
                     arena = arenaManager.GetArena();
                 }
 
@@ -186,7 +188,7 @@ module.exports = {
         }
     },
 
-    async NewTurn(turnObject, output, { actionDelaySeconds = 30 } = {}) {
+    async NewTurn(turnObject, output, { actionDelaySeconds = 30, debug = false } = {}) {
         const barrack = require('./barracks.js');
         const arenaManager = require('./arenaManager.js');
         const modifierManager = require('./modifierManager.js');
@@ -262,14 +264,16 @@ module.exports = {
             arena.fighterData[fighterId].modifierIds.forEach(modId => {
                 modifierManager.GetModifier(modId).GatherWantedInfo(info);
             });
-            // console.debug('Wanted info:', info);
+            if (debug)
+                console.debug('Wanted info:', info);
 
             // Gather the info wanted
             console.log('Gather actual info');
             arena.fighterData[fighterId].modifierIds.forEach(modId => {
                 modifierManager.GetModifier(modId).GatherInfo(barrack, fighterId, arenaManager, info);
             });
-            // console.debug('Gathered info:', info);
+            if (debug)
+                console.debug('Gathered info:', info);
 
             // Get the commands and instructions
             console.log('Get the commands and instructions');
@@ -290,8 +294,10 @@ module.exports = {
                     }
                 }
             });
-            // console.debug('Commands after adding actions :', commands);
-            // console.debug('Instructions :', instructions);
+            if (debug) {
+                console.debug('Commands after adding actions :', commands);
+                console.debug('Instructions :', instructions);
+            }
 
             // Get the move commands based on the instructions
             console.log('Get move commands');
@@ -318,7 +324,8 @@ module.exports = {
                 }
 
             });
-            // console.debug('Commands after adding moves :', commands);
+            if (debug)
+                console.debug('Commands after adding moves :', commands);
 
             // select one command  
             console.log('Select one command');
@@ -334,7 +341,8 @@ module.exports = {
             });
             console.assert(commandInd >= 0, 'A command was not found');
             const pickedCommand = commands[commandInd];
-            // console.debug('Picked command :', pickedCommand);
+            if (debug)
+                console.debug('Picked command :', pickedCommand);
 
             eventStack.push(pickedCommand.resultingEvent);
 

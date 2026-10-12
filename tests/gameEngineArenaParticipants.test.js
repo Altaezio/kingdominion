@@ -56,8 +56,10 @@ test('combat only fetches fighters already recorded in the arena', async () => {
     try {
         const gameEngine = require('../source/gameEngine.js');
         let combatFighterIds;
-        gameEngine.NewTurn = async turn => {
+        let newTurnOptions;
+        gameEngine.NewTurn = async (turn, _output, options) => {
             combatFighterIds = turn.fightersOnMapIds;
+            newTurnOptions = options;
             arena.state = 'finished';
         };
 
@@ -66,9 +68,10 @@ test('combat only fetches fighters already recorded in the arena', async () => {
             async sendError(error) {
                 throw new Error(error);
             },
-        }, undefined, { turnDelaySeconds: 0 });
+        }, undefined, { turnDelaySeconds: 0, debug: true });
 
         assert.deepEqual(combatFighterIds, ['1', '2']);
+        assert.equal(newTurnOptions.debug, true);
     }
     finally {
         delete require.cache[gameEnginePath];
