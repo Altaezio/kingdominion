@@ -97,6 +97,7 @@ Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a
 -[] Mod fire breathing (+1 dégât et feu à l'attaque)
 -[] Mod boule de feu
 -[] Mod unit tests
+-[] Have non optimal actions still returned with very low weight (for more randomness and unpredictability ?)
 
 ## Ideas
 - map

@@ -276,6 +276,10 @@ module.exports = {
         if (!arena.map.hasOwnProperty(newPositionStr))
             arena.map[newPositionStr] = [];
         arena.map[newPositionStr] = arena.map[newPositionStr].concat(objectId);
+        arena.map[newPositionStr].sort((firstId, secondId) =>
+            Number(arena.fighterData[firstId]?.isOutOfCombat === true) -
+            Number(arena.fighterData[secondId]?.isOutOfCombat === true)
+        );
 
         if (arena.map[oldPositionStr].length == 0)
             delete arena.map[oldPositionStr];
