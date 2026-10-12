@@ -344,7 +344,8 @@ module.exports = {
             if (debug)
                 console.debug('Picked command :', pickedCommand);
 
-            eventStack.push(pickedCommand.resultingEvent);
+            if (pickedCommand.hasOwnProperty("resultingEvent"))
+                eventStack.push(pickedCommand.resultingEvent);
 
             // Process all events
             await this.ResolveEventStack(eventStack, turnObject.turnOrder, i, output);
