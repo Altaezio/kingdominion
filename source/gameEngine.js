@@ -79,6 +79,7 @@ module.exports = {
                 for (let i = 0; i < nFighters; i++) {
                     const fighterId = fightersIds[i]
                     const fighter = fighterHolder.allFighters[fighterId]
+                    fighter.currentTeamId = fighter.userLocalId;
                     arenaManager.AddFighter(fighter, spawnPoints[i]);
                 }
                 await output.log(logText('departure', { map: arenaManager.GetMapVisualisation() }));
