@@ -92,7 +92,7 @@ module.exports = {
 
     GetClosestVisibleEnemy(fighterPosition, visibleEnemies) {
         return visibleEnemies
-            .toSorted((first, second) => {
+            .sort((first, second) => {
                 const firstDistance = Math.abs(first.position.x - fighterPosition.x) + Math.abs(first.position.y - fighterPosition.y);
                 const secondDistance = Math.abs(second.position.x - fighterPosition.x) + Math.abs(second.position.y - fighterPosition.y);
                 return firstDistance - secondDistance;

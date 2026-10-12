@@ -103,8 +103,8 @@ module.exports = function createSingleTargetAttack({
         },
 
         GetClosestVisibleEnemy(fighterPosition, visibleEnemies) {
-            return visibleEnemies
-                .toSorted((first, second) => {
+            return [...visibleEnemies]
+                .sort((first, second) => {
                     const firstDistance = manhattanDistance(first.position, fighterPosition);
                     const secondDistance = manhattanDistance(second.position, fighterPosition);
                     return firstDistance - secondDistance;

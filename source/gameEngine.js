@@ -279,12 +279,14 @@ module.exports = {
                 const mod = modifierManager.GetModifier(modId);
                 if (mod.type === 'action') {
                     let command = mod.GetCommand(barrack, fighterId, arenaManager, info);
-                    console.assert(command.hasOwnProperty('type'), `Command does not have a type`);
-                    if (command.type === 'actionCommand') {
-                        commands.push(command);
-                    } else {
-                        console.assert(command.type === 'instruction', `Command type '${command.type}' is not supported`);
-                        instructions.push(command);
+                    if (command) {
+                        console.assert(command.hasOwnProperty('type'), `Command does not have a type`);
+                        if (command.type === 'actionCommand') {
+                            commands.push(command);
+                        } else {
+                            console.assert(command.type === 'instruction', `Command type '${command.type}' is not supported`);
+                            instructions.push(command);
+                        }
                     }
                 }
             });
