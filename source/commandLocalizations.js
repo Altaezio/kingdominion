@@ -8,6 +8,8 @@ const localizations = {
         responses: {
             fighterNotFound: { fr: 'Aucun combattant trouvé avec le nom \'{fighterName}\'.', en: 'No fighter found with name \'{fighterName}\'.' },
             userNotFound: { fr: 'Aucun utilisateur trouvé avec l\'identifiant \'{userId}\'.', en: 'No user found with ID \'{userId}\'.' },
+            noArena: { fr: 'Aucune arène n’est actuellement chargée. Les informations du combat ne sont pas disponibles.', en: 'No arena is currently loaded. Combat information is unavailable.' },
+            fighterNotInArena: { fr: 'Aucune donnée de combat n’est disponible pour {fighterName}.', en: 'No combat data is available for {fighterName}.' },
             noModifier: { fr: 'Aucun modificateur chargé.', en: 'No modifier loaded.' },
             currentCount: { fr: 'Ce combattant a *actuellement* **{count}** modificateur(s)', en: 'This fighter currently has **{count}** modifier(s)' },
             baseCount: { fr: 'Ce combattant a *de base* **{count}** modificateur(s)', en: 'This fighter has **{count}** base modifier(s)' },

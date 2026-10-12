@@ -378,7 +378,7 @@ module.exports = {
         this.AddObjectsToPosition(fighter.id, position);
         arena.fighterData[fighter.id] = {
             isOutOfCombat: false,
-            modifierIds: fighter.baseModifierIds.toSpliced(),
+            modifierIds: [...fighter.baseModifierIds],
             modifierData: structuredClone(fighter.baseModifierData)
         }
     },

@@ -38,12 +38,17 @@ module.exports = {
         const arena = arenaManager.GetArena();
         if (combatInfo && !arena) {
             console.error(`No arena loaded`);
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'noArena') });
+            return;
         }
+
         let fighterData;
-        if (combatInfo && arena && !arena.fighterData.hasOwnProperty(fighter.id)) {
+        if (combatInfo && !Object.prototype.hasOwnProperty.call(arena.fighterData, fighter.id)) {
             console.error(`Arena doesn't have data for ${fighterName}`);
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'fighterNotInArena', { fighterName }) });
+            return;
         }
-        else {
+        if (combatInfo) {
             fighterData = arena.fighterData[fighter.id];
         }
 

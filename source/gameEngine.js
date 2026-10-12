@@ -191,7 +191,7 @@ module.exports = {
         if (!turnObject.hasOwnProperty('turnOrder') || turnObject.turnOrder.length == 0) {
             // Sort in order of actions
             console.assert(turnObject.hasOwnProperty('fightersOnMapIds'), 'turn object is missing fightersOnMapIds');
-            let fightersInOrder = turnObject.fightersOnMapIds.toSpliced(); // copy
+            let fightersInOrder = [...turnObject.fightersOnMapIds]; // copy
             ShuffleInPlace(fightersInOrder, () => arenaManager.Random());
             turnObject['turnOrder'] = fightersInOrder;
         }
