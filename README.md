@@ -88,7 +88,8 @@ Run `npm run create-modifier -- <id> <type>` with a lowercase camelCase ID and a
 -[x] Mod dash
 -[x] Have test-combat with faster turns (timer as an option? / function to go to next action ?? / no wait ???)
 -[x] Separate game logic from visualization (engine vs renderer)
--[] solve fighter-info showing the wrong owner
+-[x] solve fighter-info showing the wrong owner
+-[] make it so combat logic fetches fighters only from the arena ones
 -[] have a nice restart that knows how to handle old running data and how to resume the fights
 
 ## Later

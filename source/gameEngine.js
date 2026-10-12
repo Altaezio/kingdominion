@@ -37,21 +37,27 @@ module.exports = {
         }
 
         const fighterHolder = barrack.GetFighterHolder();
-        const fightersPerUser = {};
-        const fightersIds = Object.keys(fighterHolder.allFighters).filter(fighterId => {
-            const fighter = fighterHolder.allFighters[fighterId];
-            if (arena.state === 'initialisation' && fighter.isRetired)
-                return false;
-            if (fighter.userLocalId === 0)
+        let fightersIds;
+        if (arena.state === 'initialisation') {
+            const fightersPerUser = {};
+            fightersIds = Object.keys(fighterHolder.allFighters).filter(fighterId => {
+                const fighter = fighterHolder.allFighters[fighterId];
+                if (fighter.isRetired)
+                    return false;
+                if (fighter.userLocalId === 0)
+                    return true;
+
+                fightersPerUser[fighter.userLocalId] ??= 0;
+                if (fightersPerUser[fighter.userLocalId] >= maxFightersPerUser)
+                    return false;
+
+                fightersPerUser[fighter.userLocalId]++;
                 return true;
-
-            fightersPerUser[fighter.userLocalId] ??= 0;
-            if (fightersPerUser[fighter.userLocalId] >= maxFightersPerUser)
-                return false;
-
-            fightersPerUser[fighter.userLocalId]++;
-            return true;
-        });
+            });
+        }
+        else {
+            fightersIds = Object.keys(arena.fighterData);
+        }
 
         if (arenaManager.GetState() === 'initialisation') {
             try {

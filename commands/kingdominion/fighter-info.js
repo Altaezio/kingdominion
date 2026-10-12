@@ -52,9 +52,9 @@ module.exports = {
             fighterData = arena.fighterData[fighter.id];
         }
 
-        const user = userHandler.GetLocalUserByDiscordUser(interaction.user);
+        const user = userHandler.GetLocalUserByLocalId(fighter.userLocalId);
         if (!user) {
-            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'userNotFound', { userId: interaction.user.id }) });
+            await interaction.editReply({ content: Text(interaction, 'fighter-info', 'userNotFound', { userId: fighter.userLocalId }) });
             return;
         }
 
